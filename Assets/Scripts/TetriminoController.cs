@@ -142,10 +142,17 @@ public class TetriminoController : MonoBehaviour
             return false;
         }
 
+        // Play move sound for horizontal movements
+        if (direction == Vector3.left || direction == Vector3.right)
+        {
+            SoundManager.Instance.PlaySound(SoundManager.Instance.moveSound);
+        }
+
         // Align the child blocks to the grid
         SnapToGrid();
         return true;
     }
+
 
 
     // Rotates the Tetrimino
@@ -171,6 +178,7 @@ public class TetriminoController : MonoBehaviour
         {
             // Align the child blocks to the grid
             SnapToGrid();
+            SoundManager.Instance.PlaySound(SoundManager.Instance.rotateSound);
         }
     }
 
@@ -231,6 +239,8 @@ public class TetriminoController : MonoBehaviour
 
         // Spawn a new piece
         FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();     
+
+        SoundManager.Instance.PlaySound(SoundManager.Instance.dropSound);
     }
 
 

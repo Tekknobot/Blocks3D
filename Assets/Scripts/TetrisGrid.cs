@@ -221,17 +221,29 @@ public class TetrisGrid : MonoBehaviour
 
     public void CheckForCompleteRows()
     {
+        int rowsClearedThisCheck = 0; // Track how many rows are cleared in this check
+
         // Start from the bottom row and move up
         for (int y = gridHeight - 1; y >= 0; y--)
         {
             if (IsRowFull(y))
             {
                 ClearRow(y);
+                rowsClearedThisCheck++;
 
                 // After clearing a row, recheck the same row index
                 y++; // Increment y back because rows above have shifted down
             }
         }
+        // Play specific sound effect if 4 rows are cleared at once
+        if (rowsClearedThisCheck == 4)
+        {
+            SoundManager.Instance.PlaySound(SoundManager.Instance.tetrimino_4_RowSound);
+        }
+        else if (rowsClearedThisCheck > 0)
+        {
+            SoundManager.Instance.PlaySound(SoundManager.Instance.rowClearSound); // Regular row clear sound
+        }        
     }
 
 
