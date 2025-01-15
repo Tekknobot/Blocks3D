@@ -8,8 +8,20 @@ public class TetriminoSpawner : MonoBehaviour
 
     public Transform previewPosition; // UI position for preview
 
+    private DynamicUIController uiController; // Reference to the UI controller
+
+    void Start()
+    {
+        // Get reference to the UI controller
+        uiController = FindObjectOfType<DynamicUIController>();
+
+        // Spawn the first Tetrimino
+        SpawnTetrimino();
+    }
+
     public void SpawnTetrimino()
     {
+        // If there's no next piece, generate one
         if (nextTetrimino == null)
         {
             nextTetrimino = Instantiate(tetriminoPrefabs[Random.Range(0, tetriminoPrefabs.Length)]);
@@ -20,22 +32,19 @@ public class TetriminoSpawner : MonoBehaviour
         currentTetrimino.transform.position = spawnPosition; // Spawn position
         currentTetrimino.GetComponent<TetriminoController>().enabled = true;
 
-        // Make the piece invisible initially
-        SetTetriminoVisibility(currentTetrimino, false);
+        // Make the piece visible
+        SetTetriminoVisibility(currentTetrimino, true);
+
+        // Notify the UI controller about the active Tetrimino
+        uiController?.SetActiveTetrimino(currentTetrimino.GetComponent<TetriminoController>());
 
         // Generate a new next piece for the preview
         nextTetrimino = Instantiate(tetriminoPrefabs[Random.Range(0, tetriminoPrefabs.Length)]);
         nextTetrimino.transform.position = previewPosition.position; // Position in preview
         nextTetrimino.GetComponent<TetriminoController>().enabled = false;
 
-        // Start a coroutine to make the current Tetrimino visible after a delay
-        StartCoroutine(ShowTetriminoWhenOnGrid(currentTetrimino));
-    }
-
-    void Start()
-    {
-        // Spawn the first Tetrimino
-        SpawnTetrimino();
+        // Make the preview piece invisible on the grid
+        SetTetriminoVisibility(nextTetrimino, true);
     }
 
     private void SetTetriminoVisibility(GameObject tetrimino, bool isVisible)
@@ -44,14 +53,5 @@ public class TetriminoSpawner : MonoBehaviour
         {
             renderer.enabled = isVisible;
         }
-    }
-
-    private System.Collections.IEnumerator ShowTetriminoWhenOnGrid(GameObject tetrimino)
-    {
-        // Wait until the Tetrimino is fully within the grid
-        yield return new WaitForSeconds(0.1f); // Adjust delay as needed
-
-        // Make the Tetrimino visible
-        SetTetriminoVisibility(tetrimino, true);
     }
 }

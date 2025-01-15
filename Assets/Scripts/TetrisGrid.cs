@@ -81,47 +81,35 @@ public class TetrisGrid : MonoBehaviour
     {
         isClearingRows = true;
 
-        // Disable all TetriminoControllers
-        var activeTetriminos = FindObjectsOfType<TetriminoController>();
-        foreach (var tetrimino in activeTetriminos)
-        {
-            tetrimino.enabled = false;
-        }
-
         Debug.Log($"Clearing row {row}");
 
-        // Center of the explosion effect
         Vector3 explosionCenter = new Vector3(gridWidth / 2f, row, 0f);
-        float explosionForce = 8f; // Adjust explosion force
-        float explosionRadius = 3f; // Adjust explosion radius
-        float upwardModifier = 2f; // Adjust upward push
+        float explosionForce = 8f;
+        float explosionRadius = 3f;
+        float upwardModifier = 2f;
 
-        // Clear all blocks in the given row
         for (int x = 0; x < gridWidth; x++)
         {
             if (grid[x, row] != null)
             {
                 GameObject block = grid[x, row].gameObject;
 
-                // Check if the block is a Tetrimino block (not a GridCell)
+                // Skip non-Tetrimino blocks (e.g., visual GridCells)
                 if (block.CompareTag("GridCell"))
                 {
-                    Debug.Log($"Skipping visual GridCell at ({x}, {row})");
-                    continue; // Skip visual grid cells
+                    continue;
                 }
 
-                // Add Rigidbody component programmatically
+                // Add Rigidbody dynamically if missing
                 Rigidbody blockRigidbody = block.GetComponent<Rigidbody>();
                 if (blockRigidbody == null)
                 {
                     blockRigidbody = block.AddComponent<Rigidbody>();
+                    blockRigidbody.isKinematic = false; // Enable physics interactions
+                    blockRigidbody.useGravity = true;  // Enable gravity
                 }
 
-                // Configure the Rigidbody
-                blockRigidbody.isKinematic = false; // Allow physics interactions
-                blockRigidbody.useGravity = true; // Enable gravity
-
-                // Add explosive force
+                // Apply explosion force
                 blockRigidbody.AddExplosionForce(
                     explosionForce,
                     explosionCenter,
@@ -130,30 +118,26 @@ public class TetrisGrid : MonoBehaviour
                     ForceMode.Impulse
                 );
 
-                Debug.Log($"Applying explosion force to block at ({x}, {row})");
-
-                // Schedule destruction after the explosion effect
-                Destroy(block, 3f); // Adjust time as needed for effect completion
-                grid[x, row] = null; // Clear the block from the logical grid
+                // Schedule block destruction
+                Destroy(block, 3f);
+                grid[x, row] = null; // Remove from the logical grid
             }
         }
 
-        // Start coroutine to delay row shifting
-        StartCoroutine(ShiftRowsDownWithDelay(row, activeTetriminos));
+        // Start coroutine to shift rows down
+        StartCoroutine(ShiftRowsDownWithDelay(row, FindObjectsOfType<TetriminoController>()));
     }
 
     private IEnumerator ShiftRowsDownWithDelay(int clearedRow, TetriminoController[] activeTetriminos)
     {
         // Wait for the explosion effect to complete
-        yield return new WaitForSeconds(1f); // Adjust delay as needed
+        yield return new WaitForSeconds(1f);
 
         for (int y = clearedRow; y < gridHeight - 1; y++)
         {
-            // Skip empty rows
-            if (IsRowEmpty(y)) continue;
-
             for (int x = 0; x < gridWidth; x++)
             {
+                // Shift blocks down
                 grid[x, y] = grid[x, y + 1];
 
                 if (grid[x, y] != null)
@@ -178,8 +162,8 @@ public class TetrisGrid : MonoBehaviour
             visualizer.UpdateMechanicsCellState(x, gridHeight - 1, false);
         }
 
+        // Update game state
         rowsCleared++;
-        // Update score
         int points = (int)(100 * Mathf.Pow(2, rowsCleared - 1)); // Exponential scoring
         score += points;
 
@@ -193,7 +177,6 @@ public class TetrisGrid : MonoBehaviour
 
         isClearingRows = false;
     }
-
     void UpdateUI()
     {
         rowsClearedText.text = "Cleared: " + rowsCleared;
@@ -221,7 +204,7 @@ public class TetrisGrid : MonoBehaviour
 
     public void CheckForCompleteRows()
     {
-        int rowsClearedThisCheck = 0; // Track how many rows are cleared in this check
+        int rowsClearedThisCheck = 0;
 
         // Start from the bottom row and move up
         for (int y = gridHeight - 1; y >= 0; y--)
@@ -231,20 +214,22 @@ public class TetrisGrid : MonoBehaviour
                 ClearRow(y);
                 rowsClearedThisCheck++;
 
-                // After clearing a row, recheck the same row index
-                y++; // Increment y back because rows above have shifted down
+                // Recheck the same row since rows above have shifted down
+                y++;
             }
         }
-        // Play specific sound effect if 4 rows are cleared at once
+
+        // Play sound effects based on rows cleared
         if (rowsClearedThisCheck == 4)
         {
             SoundManager.Instance.PlaySound(SoundManager.Instance.tetrimino_4_RowSound);
         }
         else if (rowsClearedThisCheck > 0)
         {
-            SoundManager.Instance.PlaySound(SoundManager.Instance.rowClearSound); // Regular row clear sound
-        }        
+            SoundManager.Instance.PlaySound(SoundManager.Instance.rowClearSound);
+        }
     }
+
 
 
     public bool IsRowEmpty(int row)
