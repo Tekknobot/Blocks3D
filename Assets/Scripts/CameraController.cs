@@ -48,6 +48,9 @@ public class CameraController : MonoBehaviour
         Vector3 initialPosition = transform.position;
         Quaternion initialRotation = transform.rotation;
 
+        // Define the diagonal axis (e.g., in the X-Y plane)
+        Vector3 diagonalAxis = new Vector3(1, 1, 0).normalized;
+
         // Perform a full 360-degree rotation
         float elapsedRotation = 0f;
         while (elapsedRotation < 360f)
@@ -55,8 +58,8 @@ public class CameraController : MonoBehaviour
             float rotationStep = rotationSpeed * Time.deltaTime;
             elapsedRotation += rotationStep;
 
-            // Rotate around the grid center
-            transform.RotateAround(gridCenter, Vector3.up, rotationStep);
+            // Rotate around the grid center along the diagonal axis
+            transform.RotateAround(gridCenter, diagonalAxis, rotationStep);
 
             yield return null;
         }

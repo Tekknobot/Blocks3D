@@ -27,9 +27,9 @@ public class TetriminoController : MonoBehaviour
     }
 
 
-    // Handles player input for movement and rotation
     void HandleInput()
     {
+        // Handle keyboard input
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             Move(Vector3.left);
@@ -51,7 +51,74 @@ public class TetriminoController : MonoBehaviour
         {
             Rotate();
         }
+
+        // Handle mouse input
+        HandleMouseInput();
     }
+
+    void HandleMouseInput()
+    {
+        if (Input.GetMouseButtonDown(0)) // Left click for rotation
+        {
+            Rotate();
+        }
+        else if (Input.GetMouseButton(1)) // Right mouse button hold for fast drop
+        {
+            Move(Vector3.down);
+        }
+
+        if (Input.GetMouseButton(2)) // Middle mouse button to hard drop
+        {
+            while (Move(Vector3.down)) { }
+        }
+
+        // Drag for lateral movement
+        if (Input.GetMouseButton(0)) // Left mouse button drag
+        {
+            Vector3 mouseDelta = GetMouseDelta();
+
+            // Normalize mouse delta to a more reasonable scale
+            float screenWidth = Screen.width; // Get screen width in pixels
+            float screenHeight = Screen.height; // Get screen height in pixels
+
+            // Scale the sensitivity relative to the screen dimensions
+            float dragSensitivity = 0.02f; // Adjust sensitivity (lower = slower movement)
+
+            float normalizedDeltaX = mouseDelta.x / screenWidth; // Normalize X movement
+            float normalizedDeltaY = mouseDelta.y / screenHeight; // Normalize Y movement
+
+            // Move based on normalized and scaled drag
+            if (normalizedDeltaX > dragSensitivity)
+            {
+                Move(Vector3.right);
+            }
+            else if (normalizedDeltaX < -dragSensitivity)
+            {
+                Move(Vector3.left);
+            }
+
+            if (normalizedDeltaY < -dragSensitivity) // Drag down for fast drop
+            {
+                Move(Vector3.down);
+            }
+        }
+
+    }
+
+    // Track the previous mouse position for calculating drag
+    private Vector3 previousMousePosition;
+
+    Vector3 GetMouseDelta()
+    {
+        Vector3 currentMousePosition = Input.mousePosition;
+        Vector3 delta = currentMousePosition - previousMousePosition;
+
+        // Update previous mouse position for the next frame
+        previousMousePosition = currentMousePosition;
+
+        return delta;
+    }
+
 
     // Automatically moves the piece down after a delay
     void AutoMoveDown()

@@ -70,11 +70,12 @@ Material:
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _GlowStrength: 0.5
-    - _GradientScale: 2
+    - _GradientScale: 500
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _Shininess: 32
     - _ShowBorder: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
@@ -84,7 +85,14 @@ Material:
     m_Colors:
     - _BaseColor: {r: 0.5019608, g: 0.5019608, b: 1, a: 1}
     - _BorderColor: {r: 0, g: 0, b: 0, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GlowColor: {r: 1, g: 1, b: 0, a: 1}
+    - _SpecularColor: {r: 1, g: 1, b: 1, a: 1}
+    - _TintXNegative: {r: 0.9, g: 1, b: 0.9, a: 1}
+    - _TintXPositive: {r: 1, g: 0.9, b: 0.9, a: 1}
+    - _TintYNegative: {r: 1, g: 0.9, b: 1, a: 1}
+    - _TintYPositive: {r: 0.9, g: 0.9, b: 1, a: 1}
+    - _TintZNegative: {r: 1, g: 1, b: 0.9, a: 1}
+    - _TintZPositive: {r: 0.9, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
