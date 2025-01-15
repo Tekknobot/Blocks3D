@@ -131,6 +131,22 @@ public class TetriminoController : MonoBehaviour
         }
     }
 
+    private float lastMoveDownTime = 0f; // Time of the last downward movement
+    public float continuousMoveDelay = 0.1f; // Delay between moves when holding "Down"
+
+    public void MoveDownContinuously()
+    {
+        if (Time.time - lastMoveDownTime > continuousMoveDelay)
+        {
+            if (!Move(Vector3.down)) // If movement is invalid, lock the piece
+            {
+                LockPiece();
+            }
+            lastMoveDownTime = Time.time; // Update the last move time
+        }
+    }
+
+
     void SnapToGrid()
     {
         foreach (Transform block in transform)

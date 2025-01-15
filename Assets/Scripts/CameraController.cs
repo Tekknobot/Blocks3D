@@ -7,6 +7,9 @@ public class CameraController : MonoBehaviour
     public int gridHeight = 20; // Height of the Tetris grid
     public float cellSize = 1.0f; // Size of each grid cell
 
+    [Header("Camera Offset")]
+    public float verticalOffset = 0f; // Vertical offset for moving the camera down
+
     [Header("Rotation Effect Settings")]
     public float rotationSpeed = 45f; // Speed of 360-degree rotation (degrees per second)
 
@@ -33,7 +36,8 @@ public class CameraController : MonoBehaviour
         float centerX = (gridWidth * cellSize) / 2f - (cellSize / 2f);
         float centerY = (gridHeight * cellSize) / 2f - (cellSize / 2f);
 
-        transform.position = new Vector3(centerX, centerY, -10f); // Negative Z to face the grid
+        // Apply the vertical offset
+        transform.position = new Vector3(centerX, centerY - verticalOffset, -10f); // Negative Z to face the grid
         transform.rotation = Quaternion.identity; // Reset rotation to default
 
         mainCamera.orthographic = true;

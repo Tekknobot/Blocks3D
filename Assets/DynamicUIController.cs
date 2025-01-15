@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.EventSystems; // Required for Pointer Events
 
 public class DynamicUIController : MonoBehaviour
 {
@@ -32,6 +33,7 @@ public class DynamicUIController : MonoBehaviour
 
     private TetriminoController tetriminoController;
     private List<Button> buttons = new List<Button>();
+    private float continuousMoveDelay;
 
     void Start()
     {
@@ -79,26 +81,26 @@ public class DynamicUIController : MonoBehaviour
     }
 
     // Create the D-Pad group
-    void CreateDPadGroup(GameObject canvasGO)
-    {
-        // D-Pad Parent
-        GameObject dPadGroup = new GameObject("DPadGroup");
-        dPadGroup.transform.SetParent(canvasGO.transform);
+void CreateDPadGroup(GameObject canvasGO)
+{
+    GameObject dPadGroup = new GameObject("DPadGroup");
+    dPadGroup.transform.SetParent(canvasGO.transform);
 
-        RectTransform dPadGroupRect = dPadGroup.AddComponent<RectTransform>();
-        dPadGroupRect.anchorMin = new Vector2(0, 0); // Anchor to bottom-left
-        dPadGroupRect.anchorMax = new Vector2(0, 0); // Anchor to bottom-left
-        dPadGroupRect.pivot = new Vector2(0, 0);     // Pivot at bottom-left
-        dPadGroupRect.anchoredPosition = dPadGroupPosition; // Customizable position
-        dPadGroupRect.sizeDelta = new Vector2(300f, 300f); // Arbitrary size for grouping
+    RectTransform dPadGroupRect = dPadGroup.AddComponent<RectTransform>();
+    dPadGroupRect.anchorMin = new Vector2(0, 0);
+    dPadGroupRect.anchorMax = new Vector2(0, 0);
+    dPadGroupRect.pivot = new Vector2(0, 0);
+    dPadGroupRect.anchoredPosition = dPadGroupPosition;
+    dPadGroupRect.sizeDelta = new Vector2(300f, 300f);
 
-        // Create D-Pad Buttons
-        float buttonOffset = dPadButtonSize; // Button offset for positioning
-        CreateButton(dPadGroup, dPadButtonTexts[0], new Vector2(-buttonOffset, 0), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.left));
-        CreateButton(dPadGroup, dPadButtonTexts[1], new Vector2(buttonOffset, 0), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.right));
-        CreateButton(dPadGroup, dPadButtonTexts[2], new Vector2(0, -buttonOffset), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.down));
-        CreateButton(dPadGroup, dPadButtonTexts[3], new Vector2(0, buttonOffset), dPadButtonSize, dPadButtonColor, () => HardDropAction());
-    }
+    float buttonOffset = 100;
+
+    CreateButton(dPadGroup, dPadButtonTexts[0], new Vector2(-buttonOffset, 0), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.left));
+    CreateButton(dPadGroup, dPadButtonTexts[1], new Vector2(buttonOffset, 0), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.right));
+    CreateButton(dPadGroup, dPadButtonTexts[2], new Vector2(0, -buttonOffset), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.down), tetriminoController.MoveDownContinuously);
+    CreateButton(dPadGroup, dPadButtonTexts[3], new Vector2(0, buttonOffset), dPadButtonSize, dPadButtonColor, () => HardDropAction());
+}
+
 
     // Create the Action Buttons group
     void CreateActionButtonsGroup(GameObject canvasGO)
@@ -122,9 +124,8 @@ public class DynamicUIController : MonoBehaviour
     }
 
     // General button creation method
-    void CreateButton(GameObject parent, string name, Vector2 position, float buttonSize, Color buttonColor, System.Action onClickAction)
+    void CreateButton(GameObject parent, string name, Vector2 position, float buttonSize, Color buttonColor, System.Action onClickAction, System.Action onHoldAction = null)
     {
-        // Verify the parent is not null
         if (parent == null)
         {
             Debug.LogError($"Parent is null for button: {name}");
@@ -134,29 +135,26 @@ public class DynamicUIController : MonoBehaviour
         GameObject buttonGO = new GameObject(name + "Button");
         buttonGO.transform.SetParent(parent.transform);
 
-        // Add RectTransform
         RectTransform rect = buttonGO.AddComponent<RectTransform>();
         rect.sizeDelta = new Vector2(buttonSize, buttonSize);
         rect.anchoredPosition = position;
 
-        // Add Button
         Button button = buttonGO.AddComponent<Button>();
         button.onClick.AddListener(() => onClickAction());
         buttons.Add(button);
 
-        // Add Image and set to circular sprite if assigned
+        // Add Image and use circular sprite if available
         Image image = buttonGO.AddComponent<Image>();
         image.color = buttonColor;
-
         if (circularButtonSprite != null)
         {
-            image.sprite = circularButtonSprite;
+            image.sprite = circularButtonSprite; // Set the circular sprite
             image.type = Image.Type.Simple;
             image.preserveAspect = true;
         }
         else
         {
-            Debug.LogWarning($"Circular sprite not assigned for button: {name}. Using default color.");
+            Debug.LogWarning($"Circular sprite not assigned for button: {name}. Defaulting to color background.");
         }
 
         // Add Text
@@ -170,10 +168,29 @@ public class DynamicUIController : MonoBehaviour
         text.fontSize = buttonFontSize;
         text.color = buttonTextColor;
 
-        // Adjust RectTransform (already added automatically by Unity)
         RectTransform textRect = textGO.GetComponent<RectTransform>();
         textRect.sizeDelta = rect.sizeDelta;
         textRect.anchoredPosition = Vector2.zero;
+
+        // Add PointerDown and PointerUp listeners for holding actions
+        if (onHoldAction != null)
+        {
+            EventTrigger trigger = buttonGO.AddComponent<EventTrigger>();
+
+            EventTrigger.Entry pointerDownEntry = new EventTrigger.Entry
+            {
+                eventID = EventTriggerType.PointerDown
+            };
+            pointerDownEntry.callback.AddListener((_) => StartCoroutine(HoldButton(onHoldAction)));
+            trigger.triggers.Add(pointerDownEntry);
+
+            EventTrigger.Entry pointerUpEntry = new EventTrigger.Entry
+            {
+                eventID = EventTriggerType.PointerUp
+            };
+            pointerUpEntry.callback.AddListener((_) => StopAllCoroutines());
+            trigger.triggers.Add(pointerUpEntry);
+        }
     }
 
     // Actions with null safety for TetriminoController
@@ -196,4 +213,14 @@ public class DynamicUIController : MonoBehaviour
     {
         tetriminoController?.HardDrop();
     }
+
+    private IEnumerator HoldButton(System.Action onHoldAction)
+    {
+        while (true)
+        {
+            onHoldAction?.Invoke(); // Call the hold action
+            yield return new WaitForSeconds(continuousMoveDelay); // Delay between actions
+        }
+    }
+
 }

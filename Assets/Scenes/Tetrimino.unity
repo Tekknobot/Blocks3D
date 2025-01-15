@@ -647,6 +647,7 @@ MonoBehaviour:
   gridWidth: 10
   gridHeight: 20
   cellSize: 1
+  verticalOffset: 1
   rotationSpeed: 250
   isometricRotationX: 30
   isometricRotationY: 45
@@ -832,7 +833,7 @@ MonoBehaviour:
   - Right
   - Down
   - Up
-  actionButtonsGroupPosition: {x: -50, y: 50}
+  actionButtonsGroupPosition: {x: -75, y: 150}
   actionButtonSize: {x: 100, y: 100}
   actionButtonSpacing: 20
   actionButtonColor: {r: 1, g: 1, b: 1, a: 0.09803922}
@@ -842,7 +843,7 @@ MonoBehaviour:
   buttonFont: {fileID: 12800000, guid: 4beb055f07aaff244873dec698d0363e, type: 3}
   buttonFontSize: 20
   buttonTextColor: {r: 1, g: 1, b: 1, a: 0}
-  canvasCreationDelay: 1
+  canvasCreationDelay: 0
 --- !u!4 &1394859564
 Transform:
   m_ObjectHideFlags: 0
@@ -883,7 +884,7 @@ Transform:
   m_GameObject: {fileID: 1494586130}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 7, y: 22, z: 0}
+  m_LocalPosition: {x: 7, y: 20.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
