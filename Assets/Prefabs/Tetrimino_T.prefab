@@ -155,6 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveDelay: 1
   centerBlock: {fileID: 5083881325665216916}
+  isClearingRows: 0
 --- !u!1 &6052866425935009171
 GameObject:
   m_ObjectHideFlags: 0

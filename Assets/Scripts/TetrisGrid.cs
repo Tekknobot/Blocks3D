@@ -145,11 +145,13 @@ public class TetrisGrid : MonoBehaviour
     private IEnumerator ShiftRowsDownWithDelay(int clearedRow, TetriminoController[] activeTetriminos)
     {
         // Wait for the explosion effect to complete
-        yield return new WaitForSeconds(0.5f); // Adjust delay as needed
+        yield return new WaitForSeconds(1f); // Adjust delay as needed
 
-        // Shift rows above down
         for (int y = clearedRow; y < gridHeight - 1; y++)
         {
+            // Skip empty rows
+            if (IsRowEmpty(y)) continue;
+
             for (int x = 0; x < gridWidth; x++)
             {
                 grid[x, y] = grid[x, y + 1];
@@ -192,7 +194,6 @@ public class TetrisGrid : MonoBehaviour
         isClearingRows = false;
     }
 
-
     void UpdateUI()
     {
         rowsClearedText.text = "Cleared: " + rowsCleared;
@@ -220,17 +221,32 @@ public class TetrisGrid : MonoBehaviour
 
     public void CheckForCompleteRows()
     {
-        for (int y = 0; y < gridHeight; y++)
+        // Start from the bottom row and move up
+        for (int y = gridHeight - 1; y >= 0; y--)
         {
             if (IsRowFull(y))
             {
                 ClearRow(y);
 
-                // After clearing a row, check the same row again as it may now also be full
-                y--;
+                // After clearing a row, recheck the same row index
+                y++; // Increment y back because rows above have shifted down
             }
         }
     }
+
+
+    public bool IsRowEmpty(int row)
+    {
+        for (int x = 0; x < gridWidth; x++)
+        {
+            if (grid[x, row] != null)
+            {
+                return false; // Found a block, the row is not empty
+            }
+        }
+        return true; // All cells are empty
+    }
+
 
     public bool IsRowFull(int row)
     {

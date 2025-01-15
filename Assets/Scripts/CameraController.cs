@@ -52,6 +52,6 @@ public class CameraController : MonoBehaviour
 
         isOrthographic = true;
 
-        mainCamera.orthographicSize = 16;
+        mainCamera.orthographicSize = 14;
     }
 }

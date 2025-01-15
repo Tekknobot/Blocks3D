@@ -258,8 +258,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30e854893feaa48b8aa5df36bc9ac01d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveDelay: 0.8
+  moveDelay: 1
   centerBlock: {fileID: 2504372263770072803}
+  isClearingRows: 0
 --- !u!1 &5412586028099897081
 GameObject:
   m_ObjectHideFlags: 0

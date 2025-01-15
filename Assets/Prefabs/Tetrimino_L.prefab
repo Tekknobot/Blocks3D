@@ -468,5 +468,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30e854893feaa48b8aa5df36bc9ac01d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveDelay: 0.8
+  moveDelay: 1
   centerBlock: {fileID: 1409660148465214570}
+  isClearingRows: 0
