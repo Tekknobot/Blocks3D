@@ -51,43 +51,55 @@ public class TetrisGrid : MonoBehaviour
 
             if (gridPosition.y < gridHeight)
             {
-                grid[gridPosition.x, gridPosition.y] = block; // Mark the cell as occupied
-                Debug.Log($"Block locked at grid position: {gridPosition}");
+                // Only add Tetrimino blocks to the grid array
+                if (!block.CompareTag("GridCell"))
+                {
+                    grid[gridPosition.x, gridPosition.y] = block;
+                    Debug.Log($"Block locked at grid position: {gridPosition}");
+                }
             }
         }
     }
 
+
     public void ClearRow(int row)
     {
-        // Destroy all blocks in the given row
+        Debug.Log($"Clearing row {row}"); // Debugging for row clearing
+
+        // Clear all blocks in the given row
         for (int x = 0; x < gridWidth; x++)
         {
             if (grid[x, row] != null)
             {
-                Destroy(grid[x, row].gameObject);
-                grid[x, row] = null;
+                GameObject block = grid[x, row].gameObject;
 
-                // Update the visual grid
-                visualizer.UpdateCellState(x, row, false);
+                // Check if the block is a Tetrimino block (not a GridCell)
+                if (block.CompareTag("GridCell"))
+                {
+                    Debug.Log($"Skipping visual GridCell at ({x}, {row})");
+                    continue; // Skip visual grid cells
+                }
+
+                Debug.Log($"Destroying Tetrimino block at ({x}, {row})");
+                Destroy(block); // Destroy only Tetrimino blocks
+                grid[x, row] = null; // Clear the block from the logical grid
             }
         }
 
-        // Move all rows above the cleared row down by one
+        // Shift rows above down
         for (int y = row; y < gridHeight - 1; y++)
         {
             for (int x = 0; x < gridWidth; x++)
             {
-                // Move the block down in the grid array
                 grid[x, y] = grid[x, y + 1];
 
                 if (grid[x, y] != null)
                 {
-                    // Move the block's position down by one unit
                     grid[x, y].position += Vector3.down;
                 }
 
                 // Update the visual grid
-                visualizer.UpdateCellState(
+                visualizer.UpdateMechanicsCellState(
                     x,
                     y,
                     grid[x, y] != null,
@@ -96,14 +108,13 @@ public class TetrisGrid : MonoBehaviour
             }
         }
 
-        // Clear the topmost row (which is now shifted down)
+        // Clear the topmost row (now shifted down)
         for (int x = 0; x < gridWidth; x++)
         {
             grid[x, gridHeight - 1] = null;
-            visualizer.UpdateCellState(x, gridHeight - 1, false);
+            visualizer.UpdateMechanicsCellState(x, gridHeight - 1, false);
         }
     }
-
     public void CheckForCompleteRows()
     {
         for (int y = 0; y < gridHeight; y++)

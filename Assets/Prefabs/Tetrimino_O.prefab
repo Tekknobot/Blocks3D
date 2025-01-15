@@ -259,7 +259,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveDelay: 0.8
-  centerBlock: {fileID: 1118831905375177905}
+  centerBlock: {fileID: 2504372263770072803}
 --- !u!1 &5412586028099897081
 GameObject:
   m_ObjectHideFlags: 0

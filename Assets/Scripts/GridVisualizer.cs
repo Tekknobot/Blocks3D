@@ -7,54 +7,77 @@ public class GridVisualizer : MonoBehaviour
     public float cellSize = 1.0f;
 
     public GameObject cellPrefab; // Prefab for a single cell
-    private GameObject[,] visualGrid; // Store references to all cell GameObjects
+    private GameObject[,] mechanicsGrid; // Visual grid for mechanics (hidden)
+    private GameObject[,] displayGrid;   // Visual-only grid (displayed)
 
     void Start()
     {
-        InitializeGrid();
-        VisualizeGrid();
+        InitializeGrids();
+        VisualizeGrids();
     }
 
-    void InitializeGrid()
+    void InitializeGrids()
     {
-        visualGrid = new GameObject[gridWidth, gridHeight];
+        // Initialize both grids
+        mechanicsGrid = new GameObject[gridWidth, gridHeight];
+        displayGrid = new GameObject[gridWidth, gridHeight];
     }
 
-    void VisualizeGrid()
+    void VisualizeGrids()
     {
+        // Create cells for both grids
         for (int x = 0; x < gridWidth; x++)
         {
             for (int y = 0; y < gridHeight; y++)
             {
-                CreateCell(x, y);
+                mechanicsGrid[x, y] = CreateCell(x, y, "MechanicsGrid", false); // Hidden
+                displayGrid[x, y] = CreateCell(x, y, "DisplayGrid", true); // Visible
             }
         }
     }
 
-    void CreateCell(int x, int y)
+    GameObject CreateCell(int x, int y, string parentName, bool isVisible)
     {
+        // Create a parent object for organizational purposes
+        Transform parent = transform.Find(parentName);
+        if (parent == null)
+        {
+            GameObject parentObject = new GameObject(parentName);
+            parentObject.transform.SetParent(transform);
+            parent = parentObject.transform;
+        }
+
         // Instantiate and position the cell
-        GameObject cell = Instantiate(cellPrefab, transform);
+        GameObject cell = Instantiate(cellPrefab, parent);
         cell.transform.position = new Vector3(x * cellSize, y * cellSize, 0);
 
         // Name the cell for debugging
-        cell.name = $"Cell ({x}, {y})";
+        cell.name = $"{parentName} Cell ({x}, {y})";
 
         // Scale the cell (optional)
         cell.transform.localScale = Vector3.one * (cellSize * 0.9f);
 
-        // Store the reference
-        visualGrid[x, y] = cell;
+        // Set visibility
+        cell.SetActive(isVisible);
 
-        // Deactivate the cell by default
-        cell.SetActive(true);
+        return cell;
     }
 
-    public void UpdateCellState(int x, int y, bool isActive, Color color = default)
+    public void UpdateMechanicsCellState(int x, int y, bool isActive, Color color = default)
+    {
+        UpdateCellState(mechanicsGrid, x, y, isActive, color);
+    }
+
+    public void UpdateDisplayCellState(int x, int y, bool isActive, Color color = default)
+    {
+        UpdateCellState(displayGrid, x, y, isActive, color);
+    }
+
+    private void UpdateCellState(GameObject[,] grid, int x, int y, bool isActive, Color color)
     {
         if (x < 0 || x >= gridWidth || y < 0 || y >= gridHeight) return;
 
-        GameObject cell = visualGrid[x, y];
+        GameObject cell = grid[x, y];
         if (cell != null)
         {
             cell.SetActive(isActive);
@@ -68,5 +91,4 @@ public class GridVisualizer : MonoBehaviour
             }
         }
     }
-
 }

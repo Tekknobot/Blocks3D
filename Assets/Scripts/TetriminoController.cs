@@ -21,9 +21,11 @@ public class TetriminoController : MonoBehaviour
 
     void Update()
     {
+        if (isLocked) return; // Do nothing if the piece is locked
         HandleInput();
         AutoMoveDown();
     }
+
 
     // Handles player input for movement and rotation
     void HandleInput()
@@ -120,15 +122,18 @@ public class TetriminoController : MonoBehaviour
     {
         foreach (Transform block in transform)
         {
+            // Calculate the floored position for each block
             Vector3 localSnappedPosition = new Vector3(
-                Mathf.Round(block.localPosition.x),
-                Mathf.Round(block.localPosition.y),
-                Mathf.Round(block.localPosition.z)
+                Mathf.Floor(block.localPosition.x),
+                Mathf.Floor(block.localPosition.y),
+                Mathf.Floor(block.localPosition.z)
             );
 
+            // Apply the floored position to the block's local position
             block.localPosition = localSnappedPosition;
         }
     }
+
 
     // Locks the piece into the grid
     void LockPiece()
@@ -146,6 +151,9 @@ public class TetriminoController : MonoBehaviour
 
         // Check for complete rows
         grid.CheckForCompleteRows();
+
+        // Disable this script to prevent further movement or rotation
+        this.enabled = false;
 
         // Spawn a new piece
         FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();
