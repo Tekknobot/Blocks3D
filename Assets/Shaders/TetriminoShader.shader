@@ -3,6 +3,7 @@ Shader "Custom/TetriminoShader"
     Properties
     {
         _Color ("Base Color", Color) = (1, 1, 1, 1) // Add this line if `_Color` is missing
+
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
         _GlowColor ("Glow Color", Color) = (1, 1, 1, 1)
     }

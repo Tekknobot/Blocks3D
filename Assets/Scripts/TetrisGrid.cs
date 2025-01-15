@@ -66,6 +66,11 @@ public class TetrisGrid : MonoBehaviour
     {
         Debug.Log($"Clearing row {row}"); // Debugging for row clearing
 
+        // Trigger additional actions here
+        Debug.Log("Piece locked. Triggering additional actions...");
+        FindObjectOfType<CameraController>()?.TriggerRowClearEffect(); // Example: Camera transition effect
+        // You can replace the above with other triggers such as playing sounds, animations, etc.
+
         // Clear all blocks in the given row
         for (int x = 0; x < gridWidth; x++)
         {
