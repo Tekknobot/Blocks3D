@@ -212,6 +212,7 @@ public class TetriminoController : MonoBehaviour
             {
                 Debug.Log("Game Over!");
                 FindObjectOfType<TetrisGrid>().GameOver();
+                SoundManager.Instance.PlaySound(SoundManager.Instance.gameOverSound);
                 return;
             }
         }
