@@ -27,51 +27,6 @@ public class CameraController : MonoBehaviour
         SetOrthographicView();
     }
 
-    public void TriggerRowClearEffect()
-    {
-        if (transitionCoroutine != null)
-            StopCoroutine(transitionCoroutine);
-
-        transitionCoroutine = StartCoroutine(RotateAroundGrid());
-    }
-
-    IEnumerator RotateAroundGrid()
-    {
-        // Cache the grid center
-        Vector3 gridCenter = new Vector3(
-            (gridWidth * cellSize) / 2f - (cellSize / 2f),
-            (gridHeight * cellSize) / 2f - (cellSize / 2f),
-            0f
-        );
-
-        // Cache the starting position and rotation
-        Vector3 initialPosition = transform.position;
-        Quaternion initialRotation = transform.rotation;
-
-        // Define the diagonal axis (e.g., in the X-Y plane)
-        Vector3 diagonalAxis = new Vector3(1, 1, 0).normalized;
-
-        // Perform a full 360-degree rotation
-        float elapsedRotation = 0f;
-        while (elapsedRotation < 360f)
-        {
-            float rotationStep = rotationSpeed * Time.deltaTime;
-            elapsedRotation += rotationStep;
-
-            // Rotate around the grid center along the diagonal axis
-            transform.RotateAround(gridCenter, diagonalAxis, rotationStep);
-
-            yield return null;
-        }
-
-        // Reset position and rotation to the initial view
-        transform.position = initialPosition;
-        transform.rotation = initialRotation;
-
-        // Ensure the camera stays aligned with the orthographic view
-        SetOrthographicView();
-    }
-
     void SetOrthographicView()
     {
         // Calculate the center of the grid
@@ -96,5 +51,7 @@ public class CameraController : MonoBehaviour
         }
 
         isOrthographic = true;
+
+        mainCamera.orthographicSize = 16;
     }
 }

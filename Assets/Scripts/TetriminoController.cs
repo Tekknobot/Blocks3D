@@ -10,6 +10,10 @@ public class TetriminoController : MonoBehaviour
     [Tooltip("Drag the block to be used as the center pivot")]
     public Transform centerBlock; // Reference to the chosen center block
     private bool isLocked;
+    private Vector3 previousMousePosition;
+    public static float baseDropDelay = 0.5f; // Default drop delay
+    public bool isClearingRows = false;
+
 
     void Start()
     {
@@ -21,7 +25,7 @@ public class TetriminoController : MonoBehaviour
 
     void Update()
     {
-        if (isLocked) return; // Do nothing if the piece is locked
+        if (isLocked || grid.isClearingRows) return; // Do nothing if locked or clearing rows
         HandleInput();
         AutoMoveDown();
     }
@@ -58,79 +62,65 @@ public class TetriminoController : MonoBehaviour
 
     void HandleMouseInput()
     {
-        if (Input.GetMouseButtonDown(0)) // Left click for rotation
+        if (Input.GetMouseButtonDown(0)) // Left mouse click
         {
-            Rotate();
-        }
-        else if (Input.GetMouseButton(1)) // Right mouse button hold for fast drop
-        {
-            Move(Vector3.down);
-        }
+            // Get mouse position in screen space
+            Vector3 mousePosition = Input.mousePosition;
 
-        if (Input.GetMouseButton(2)) // Middle mouse button to hard drop
-        {
-            while (Move(Vector3.down)) { }
-        }
-
-        // Drag for lateral movement
-        if (Input.GetMouseButton(0)) // Left mouse button drag
-        {
-            Vector3 mouseDelta = GetMouseDelta();
-
-            // Normalize mouse delta to a more reasonable scale
-            float screenWidth = Screen.width; // Get screen width in pixels
-            float screenHeight = Screen.height; // Get screen height in pixels
-
-            // Scale the sensitivity relative to the screen dimensions
-            float dragSensitivity = 0.02f; // Adjust sensitivity (lower = slower movement)
-
-            float normalizedDeltaX = mouseDelta.x / screenWidth; // Normalize X movement
-            float normalizedDeltaY = mouseDelta.y / screenHeight; // Normalize Y movement
-
-            // Move based on normalized and scaled drag
-            if (normalizedDeltaX > dragSensitivity)
+            // Check if the click is in the top half for fast drop
+            if (IsInTopHalf(mousePosition))
             {
-                Move(Vector3.right);
+                while (Move(Vector3.down)) { } // Fast drop
             }
-            else if (normalizedDeltaX < -dragSensitivity)
+            else
             {
-                Move(Vector3.left);
-            }
-
-            if (normalizedDeltaY < -dragSensitivity) // Drag down for fast drop
-            {
-                Move(Vector3.down);
+                // Determine which screen region was clicked
+                if (IsInLeftRegion(mousePosition))
+                {
+                    Move(Vector3.left);
+                }
+                else if (IsInRightRegion(mousePosition))
+                {
+                    Move(Vector3.right);
+                }
+                else if (IsInMiddleRegion(mousePosition))
+                {
+                    Rotate();
+                }
             }
         }
-
     }
 
-    // Track the previous mouse position for calculating drag
-    private Vector3 previousMousePosition;
-
-    Vector3 GetMouseDelta()
+    bool IsInLeftRegion(Vector3 mousePosition)
     {
-        Vector3 currentMousePosition = Input.mousePosition;
-        Vector3 delta = currentMousePosition - previousMousePosition;
+        return mousePosition.x < Screen.width / 3f; // Left third of the screen
+    }
 
-        // Update previous mouse position for the next frame
-        previousMousePosition = currentMousePosition;
+    bool IsInRightRegion(Vector3 mousePosition)
+    {
+        return mousePosition.x > Screen.width * 2f / 3f; // Right third of the screen
+    }
 
-        return delta;
+    bool IsInMiddleRegion(Vector3 mousePosition)
+    {
+        return mousePosition.x >= Screen.width / 3f && mousePosition.x <= Screen.width * 2f / 3f; // Middle third
+    }
+
+    bool IsInTopHalf(Vector3 mousePosition)
+    {
+        return mousePosition.y > Screen.height / 2f; // Top half of the screen
     }
 
 
     // Automatically moves the piece down after a delay
     void AutoMoveDown()
     {
-        // Do nothing if the piece is already locked
-        if (isLocked) return;
+        float currentDropDelay = baseDropDelay;
 
-        if (Time.time - lastMoveTime > moveDelay)
+        if (Time.time - lastMoveTime > currentDropDelay)
         {
             if (!Move(Vector3.down))
             {
-                Debug.Log("Piece hit the bottom. Locking...");
                 LockPiece();
             }
             lastMoveTime = Time.time;
@@ -205,6 +195,23 @@ public class TetriminoController : MonoBehaviour
     // Locks the piece into the grid
     void LockPiece()
     {
+        // Prevent locking if rows are being cleared
+        if (grid.isClearingRows) return;        
+        
+        foreach (Transform block in transform)
+        {
+            if (block.position.y >= 19)
+            {
+                Debug.Log("Game Over!");
+                FindObjectOfType<TetrisGrid>().GameOver();
+                return;
+            }
+        }
+
+        // Existing locking logic
+        FindObjectOfType<TetrisGrid>().AddToGrid(transform);
+        FindObjectOfType<TetrisGrid>().CheckForCompleteRows();
+
         // Prevent multiple locks
         if (isLocked) return;
 
@@ -223,7 +230,7 @@ public class TetriminoController : MonoBehaviour
         this.enabled = false;
 
         // Spawn a new piece
-        FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();
+        FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();     
     }
 
 

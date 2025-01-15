@@ -1,17 +1,33 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using static System.Net.Mime.MediaTypeNames;
 
 public class TetrisGrid : MonoBehaviour
 {
     public int gridWidth = 10;
     public int gridHeight = 20;
     public Transform[,] grid;
-
     private GridVisualizer visualizer;
+    public int rowsCleared = 0;
+    public int score = 0;
+    public TMP_Text rowsClearedText;
+    public TMP_Text scoreText;
+    public float baseDropDelay = 0.5f; // Initial drop delay
+    public float dropDelayDecrease = 0.05f; // Amount to decrease the delay per level
+    public int rowsPerDifficultyIncrease = 10; // Rows cleared per difficulty increase
+    private int currentDifficultyLevel = 1;
+    public TMP_Text highScoreText;
+    public bool isClearingRows = false;
 
     void Start()
     {
         grid = new Transform[gridWidth, gridHeight];
         visualizer = FindObjectOfType<GridVisualizer>();
+
+        int highScore = LoadHighScore();
+        highScoreText.text = "HIGHSCORE: " + highScore;        
     }
 
     public bool IsInsideGrid(Vector3 position)
@@ -61,15 +77,24 @@ public class TetrisGrid : MonoBehaviour
         }
     }
 
-
     public void ClearRow(int row)
     {
-        Debug.Log($"Clearing row {row}"); // Debugging for row clearing
+        isClearingRows = true;
 
-        // Trigger additional actions here
-        Debug.Log("Piece locked. Triggering additional actions...");
-        FindObjectOfType<CameraController>()?.TriggerRowClearEffect(); // Example: Camera transition effect
-        // You can replace the above with other triggers such as playing sounds, animations, etc.
+        // Disable all TetriminoControllers
+        var activeTetriminos = FindObjectsOfType<TetriminoController>();
+        foreach (var tetrimino in activeTetriminos)
+        {
+            tetrimino.enabled = false;
+        }
+
+        Debug.Log($"Clearing row {row}");
+
+        // Center of the explosion effect
+        Vector3 explosionCenter = new Vector3(gridWidth / 2f, row, 0f);
+        float explosionForce = 8f; // Adjust explosion force
+        float explosionRadius = 3f; // Adjust explosion radius
+        float upwardModifier = 2f; // Adjust upward push
 
         // Clear all blocks in the given row
         for (int x = 0; x < gridWidth; x++)
@@ -85,14 +110,45 @@ public class TetrisGrid : MonoBehaviour
                     continue; // Skip visual grid cells
                 }
 
-                Debug.Log($"Destroying Tetrimino block at ({x}, {row})");
-                Destroy(block); // Destroy only Tetrimino blocks
+                // Add Rigidbody component programmatically
+                Rigidbody blockRigidbody = block.GetComponent<Rigidbody>();
+                if (blockRigidbody == null)
+                {
+                    blockRigidbody = block.AddComponent<Rigidbody>();
+                }
+
+                // Configure the Rigidbody
+                blockRigidbody.isKinematic = false; // Allow physics interactions
+                blockRigidbody.useGravity = true; // Enable gravity
+
+                // Add explosive force
+                blockRigidbody.AddExplosionForce(
+                    explosionForce,
+                    explosionCenter,
+                    explosionRadius,
+                    upwardModifier,
+                    ForceMode.Impulse
+                );
+
+                Debug.Log($"Applying explosion force to block at ({x}, {row})");
+
+                // Schedule destruction after the explosion effect
+                Destroy(block, 3f); // Adjust time as needed for effect completion
                 grid[x, row] = null; // Clear the block from the logical grid
             }
         }
 
+        // Start coroutine to delay row shifting
+        StartCoroutine(ShiftRowsDownWithDelay(row, activeTetriminos));
+    }
+
+    private IEnumerator ShiftRowsDownWithDelay(int clearedRow, TetriminoController[] activeTetriminos)
+    {
+        // Wait for the explosion effect to complete
+        yield return new WaitForSeconds(0.5f); // Adjust delay as needed
+
         // Shift rows above down
-        for (int y = row; y < gridHeight - 1; y++)
+        for (int y = clearedRow; y < gridHeight - 1; y++)
         {
             for (int x = 0; x < gridWidth; x++)
             {
@@ -119,7 +175,49 @@ public class TetrisGrid : MonoBehaviour
             grid[x, gridHeight - 1] = null;
             visualizer.UpdateMechanicsCellState(x, gridHeight - 1, false);
         }
+
+        rowsCleared++;
+        // Update score
+        int points = (int)(100 * Mathf.Pow(2, rowsCleared - 1)); // Exponential scoring
+        score += points;
+
+        UpdateUI();
+
+        // Re-enable TetriminoControllers
+        foreach (var tetrimino in activeTetriminos)
+        {
+            tetrimino.enabled = true;
+        }
+
+        isClearingRows = false;
     }
+
+
+    void UpdateUI()
+    {
+        rowsClearedText.text = "Cleared: " + rowsCleared;
+        scoreText.text = "Score: " + score;
+
+        // Check if it's time to increase difficulty
+        if (rowsCleared / rowsPerDifficultyIncrease >= currentDifficultyLevel)
+        {
+            IncreaseDifficulty();
+            currentDifficultyLevel++;
+        }
+    }
+
+    void IncreaseDifficulty()
+    {
+        // Notify the player (optional)
+        Debug.Log("Difficulty increased!");
+
+        // Reduce the base drop delay in TetriminoController
+        TetriminoController.baseDropDelay = Mathf.Max(
+            TetriminoController.baseDropDelay - dropDelayDecrease,
+            0.1f // Minimum delay
+        );
+    }    
+
     public void CheckForCompleteRows()
     {
         for (int y = 0; y < gridHeight; y++)
@@ -154,4 +252,97 @@ public class TetrisGrid : MonoBehaviour
         // Snap the block's position to ensure alignment
         block.position = new Vector3(position.x, position.y, block.position.z);
     }
+
+    public void GameOver()
+    {
+        Debug.Log("Game Over!");
+        CheckAndSaveHighScore();
+
+        Vector3 explosionCenter = new Vector3(gridWidth / 2f, gridHeight / 2f, 0f);
+        float explosionForce = 8f; // Adjust the explosion force
+        float explosionRadius = 3f; // Adjust the radius to cover the grid
+        float upwardModifier = 2f; // Optional upward force
+
+        // Loop through the entire grid and apply the explosion effect to all blocks
+        for (int y = 0; y < gridHeight; y++)
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                if (grid[x, y] != null)
+                {
+                    GameObject block = grid[x, y].gameObject;
+
+                    // Add Rigidbody component programmatically
+                    Rigidbody blockRigidbody = block.GetComponent<Rigidbody>();
+                    if (blockRigidbody == null)
+                    {
+                        blockRigidbody = block.AddComponent<Rigidbody>();
+                    }
+
+                    // Configure the Rigidbody
+                    blockRigidbody.isKinematic = false; // Allow physics interactions
+                    blockRigidbody.useGravity = true; // Enable gravity
+
+                    // Apply the explosive force
+                    blockRigidbody.AddExplosionForce(
+                        explosionForce,
+                        explosionCenter,
+                        explosionRadius,
+                        upwardModifier,
+                        ForceMode.Impulse
+                    );
+
+                    // Schedule destruction for the block
+                    Destroy(block, 3f); // Adjust the time to suit the effect
+                    grid[x, y] = null; // Clear the block from the logical grid
+                }
+            }
+        }
+
+        // Optionally disable input or pause the game
+        DisableGameControls();
+
+        // Restart the game after a delay
+            Invoke(nameof(RestartGame), 3f); // Adjust delay to match the explosion duration
+    }
+
+    void DisableGameControls()
+    {
+        // Example: Disable all Tetrimino controllers
+        TetriminoController[] controllers = FindObjectsOfType<TetriminoController>();
+        foreach (var controller in controllers)
+        {
+            controller.enabled = false;
+        }
+    }
+
+    void RestartGame()
+    {
+        // Reload the current scene to reset the game
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void SaveScore()
+    {
+        PlayerPrefs.SetInt("HighScore", score);
+        PlayerPrefs.Save();
+        Debug.Log("Score saved: " + score);
+    }
+
+    void CheckAndSaveHighScore()
+    {
+        int highScore = LoadHighScore();
+
+        if (score > highScore)
+        {
+            Debug.Log("New high score achieved!");
+            SaveScore();
+        }
+    }
+
+    public int LoadHighScore()
+    {
+        return PlayerPrefs.GetInt("HighScore", 0); // Default to 0 if no high score is saved
+    }
+
 }
