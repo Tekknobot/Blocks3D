@@ -36,7 +36,6 @@ public class DynamicUIController : MonoBehaviour
     [Header("Continuous Move Settings")]
     public float continuousMoveDelay = 0.1f; // Delay between continuous moves, adjustable in the Inspector
 
-
     void Start()
     {
         StartCoroutine(CreateCanvasWithDelay());

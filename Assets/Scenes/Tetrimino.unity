@@ -825,17 +825,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   circularButtonSprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  dPadGroupPosition: {x: 50, y: 50}
-  dPadButtonSize: 100
+  dPadGroupPosition: {x: 100, y: 50}
+  dPadButtonSize: 0
   dPadButtonColor: {r: 1, g: 1, b: 1, a: 0.09803922}
   dPadButtonTexts:
   - Left
   - Right
   - Down
   - Up
-  actionButtonsGroupPosition: {x: -75, y: 150}
-  actionButtonSize: {x: 100, y: 100}
-  actionButtonSpacing: 20
+  actionButtonsGroupPosition: {x: -280, y: 150}
+  actionButtonSize: {x: 170, y: 170}
+  actionButtonSpacing: 250
   actionButtonColor: {r: 1, g: 1, b: 1, a: 0.09803922}
   actionButtonTexts:
   - B

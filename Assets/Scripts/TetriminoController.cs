@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TetriminoController : MonoBehaviour
 {
@@ -10,15 +11,9 @@ public class TetriminoController : MonoBehaviour
     [Tooltip("Drag the block to be used as the center pivot")]
     public Transform centerBlock; // Reference to the chosen center block
     private bool isLocked;
+    private Vector3 previousMousePosition;
     public static float baseDropDelay = 0.5f; // Default drop delay
     public bool isClearingRows = false;
-
-    public static TetriminoController Instance;
-
-    void Awake()
-    {
-        Instance = this; // Register this instance
-    }
 
     void Start()
     {
@@ -34,6 +29,7 @@ public class TetriminoController : MonoBehaviour
         HandleInput();
         AutoMoveDown();
     }
+
 
     void HandleInput()
     {
@@ -52,13 +48,76 @@ public class TetriminoController : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.Space))
         {
-            HardDrop();
+            // Hard drop
+            while (Move(Vector3.down)) { }
         }
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            RotateRight();
+            //Rotate();
+        }
+
+        // Handle mouse input
+        HandleMouseInput();
+    }
+
+    void HandleMouseInput()
+    {
+        // Check if the pointer is over a UI element
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+        {
+            // Do nothing if the click is over a UI element
+            return;
+        }
+                
+        if (Input.GetMouseButtonDown(0)) // Left mouse click
+        {
+            // Get mouse position in screen space
+            Vector3 mousePosition = Input.mousePosition;
+
+            // Check if the click is in the top half for fast drop
+            if (IsInTopHalf(mousePosition))
+            {
+                while (Move(Vector3.down)) { } // Fast drop
+            }
+            else
+            {
+                // Determine which screen region was clicked
+                if (IsInLeftRegion(mousePosition))
+                {
+                    Move(Vector3.left);
+                }
+                else if (IsInRightRegion(mousePosition))
+                {
+                    Move(Vector3.right);
+                }
+                else if (IsInMiddleRegion(mousePosition))
+                {
+                    //Rotate();
+                }
+            }
         }
     }
+
+    bool IsInLeftRegion(Vector3 mousePosition)
+    {
+        return mousePosition.x < Screen.width / 3f; // Left third of the screen
+    }
+
+    bool IsInRightRegion(Vector3 mousePosition)
+    {
+        return mousePosition.x > Screen.width * 2f / 3f; // Right third of the screen
+    }
+
+    bool IsInMiddleRegion(Vector3 mousePosition)
+    {
+        return mousePosition.x >= Screen.width / 3f && mousePosition.x <= Screen.width * 2f / 3f; // Middle third
+    }
+
+    bool IsInTopHalf(Vector3 mousePosition)
+    {
+        return mousePosition.y > Screen.height / 2f; // Top half of the screen
+    }
+
 
     // Automatically moves the piece down after a delay
     void AutoMoveDown()
@@ -75,27 +134,6 @@ public class TetriminoController : MonoBehaviour
         }
     }
 
-    public void HardDrop()
-    {
-        while (Move(Vector3.down)) { }
-    }
-
-    // Moves the Tetrimino in the specified direction
-    public bool Move(Vector3 direction)
-    {
-        transform.position += direction;
-
-        // Check for collisions
-        if (!IsValidPosition())
-        {
-            transform.position -= direction; // Undo move if invalid
-            return false;
-        }
-
-        SnapToGrid(); // Align the child blocks to the grid
-        return true;
-    }
-
     // Rotates the Tetrimino to the right
     public void RotateRight()
     {
@@ -108,93 +146,118 @@ public class TetriminoController : MonoBehaviour
         Rotate(-90); // Rotate 90 degrees counterclockwise
     }
 
-    // General rotation logic
-    private void Rotate(float angle)
+    public void HardDrop()
     {
-        if (gameObject.name.Contains("O")) // Prevent rotation for "O" Tetrimino
-        {
-            Debug.Log("Tetrimino_O does not rotate.");
-            return;
-        }
+        while (Move(Vector3.down)) { }
+    }
 
-        transform.Rotate(0, 0, angle); // Rotate the parent object
+    // Moves the Tetrimino in the specified direction
+    public bool Move(Vector3 direction)
+    {
+        // Move the parent object
+        transform.position += direction;
 
         // Check for collisions
         if (!IsValidPosition())
         {
-            transform.Rotate(0, 0, -angle); // Undo rotation if invalid
+            // Undo move if invalid
+            transform.position -= direction;
+            return false;
         }
-        else
-        {
-            SnapToGrid(); // Align the child blocks to the grid
-            SoundManager.Instance.PlaySound(SoundManager.Instance.rotateSound);
-        }
+
+        // Align the child blocks to the grid
+        SnapToGrid();
+        return true;
     }
 
-    private float lastMoveDownTime = 0f; // Time of the last downward movement
-    public float continuousMoveDelay = 0.1f; // Delay between moves when holding "Down"
 
-    public void MoveDownContinuously()
-    {
-        if (Time.time - lastMoveDownTime > continuousMoveDelay)
+        // General rotation logic
+        private void Rotate(float angle)
         {
-            if (!Move(Vector3.down)) // If movement is invalid, lock the piece
+            if (gameObject.name.Contains("O")) // Prevent rotation for "O" Tetrimino
             {
-                LockPiece();
+                Debug.Log("Tetrimino_O does not rotate.");
+                return;
             }
-            lastMoveDownTime = Time.time; // Update the last move time
-        }
-    }
 
+            transform.Rotate(0, 0, angle); // Rotate the parent object
+
+            // Check for collisions
+            if (!IsValidPosition())
+            {
+                transform.Rotate(0, 0, -angle); // Undo rotation if invalid
+            }
+            else
+            {
+                SnapToGrid(); // Align the child blocks to the grid
+                SoundManager.Instance.PlaySound(SoundManager.Instance.rotateSound);
+            }
+        }
 
     void SnapToGrid()
     {
         foreach (Transform block in transform)
         {
-            // Align each block to the grid
+            // Calculate the floored position for each block
             Vector3 localSnappedPosition = new Vector3(
                 Mathf.Floor(block.localPosition.x),
                 Mathf.Floor(block.localPosition.y),
                 Mathf.Floor(block.localPosition.z)
             );
 
+            // Apply the floored position to the block's local position
             block.localPosition = localSnappedPosition;
         }
     }
 
+
+    // Locks the piece into the grid
     void LockPiece()
     {
-        if (grid.isClearingRows) return; // Prevent locking if rows are being cleared
-
+        // Prevent locking if rows are being cleared
+        if (grid.isClearingRows) return;        
+        
         foreach (Transform block in transform)
         {
             if (block.position.y >= 19)
             {
                 Debug.Log("Game Over!");
-                grid.GameOver();
-                SoundManager.Instance.PlaySound(SoundManager.Instance.gameOverSound);
+                FindObjectOfType<TetrisGrid>().GameOver();
                 return;
             }
         }
 
-        // Add the piece to the grid and check for complete rows
-        grid.AddToGrid(transform);
-        grid.CheckForCompleteRows();
+        // Existing locking logic
+        FindObjectOfType<TetrisGrid>().AddToGrid(transform);
+        FindObjectOfType<TetrisGrid>().CheckForCompleteRows();
 
+        // Prevent multiple locks
         if (isLocked) return;
 
-        isLocked = true;
+        isLocked = true; // Mark the piece as locked
+
+        // Snap all blocks to the grid
         SnapToGrid();
 
+        // Add the piece to the grid
+        grid.AddToGrid(transform);
+
+        // Check for complete rows
+        grid.CheckForCompleteRows();
+
+        // Disable this script to prevent further movement or rotation
         this.enabled = false;
 
-        FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();
-        SoundManager.Instance.PlaySound(SoundManager.Instance.dropSound);
+        // Spawn a new piece
+        FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();     
     }
 
+
+    // Checks if the current position of the Tetrimino is valid
     bool IsValidPosition()
     {
-        return grid.IsValidPosition(transform); // Check with the grid logic
+        // Check with the grid logic
+        return grid.IsValidPosition(transform);
     }
 
     void CenterPivot()
@@ -205,15 +268,21 @@ public class TetriminoController : MonoBehaviour
             return;
         }
 
+        // Get the offset to the center block
         Vector3 centerBlockLocalPosition = centerBlock.localPosition;
 
+        // Move the parent to align with the center block
         transform.position += centerBlock.position - transform.position;
 
+        // Adjust child block positions to maintain relative alignment
         foreach (Transform block in transform)
         {
             block.localPosition -= centerBlockLocalPosition;
         }
 
+        // Ensure blocks remain aligned to the grid
         SnapToGrid();
     }
+
+
 }
