@@ -5,13 +5,23 @@ using UnityEngine;
 public class AudioManager : MonoBehaviour
 {
     public AudioSource audioSource; // Reference to the AudioSource component
-
     private List<AudioClip> musicClips = new List<AudioClip>();
+    private bool audioStarted = false; // Tracks if audio has started
 
     void Start()
     {
         LoadMusicClips();
-        PlayRandomSong();
+        //Debug.Log("Waiting for user interaction to start audio...");
+        StartAudio();
+    }
+
+    void Update()
+    {
+        // Start audio playback on the first click
+        if (!audioStarted && Input.GetMouseButtonDown(0))
+        {
+            //StartAudio();
+        }
     }
 
     // Load all audio clips from the Music folder
@@ -24,6 +34,21 @@ public class AudioManager : MonoBehaviour
         if (musicClips.Count == 0)
         {
             Debug.LogError("No music found in the Assets/Resources/Audio/Music folder!");
+        }
+    }
+
+    // Start audio playback
+    private void StartAudio()
+    {
+        if (musicClips.Count > 0)
+        {
+            audioStarted = true;
+            PlayRandomSong();
+            Debug.Log("Audio started after user interaction!");
+        }
+        else
+        {
+            Debug.LogError("No music clips available to play!");
         }
     }
 

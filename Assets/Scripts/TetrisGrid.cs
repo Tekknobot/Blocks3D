@@ -27,7 +27,7 @@ public class TetrisGrid : MonoBehaviour
         visualizer = FindObjectOfType<GridVisualizer>();
 
         int highScore = LoadHighScore();
-        highScoreText.text = "HIGHSCORE: " + highScore;        
+        highScoreText.text = "" + highScore;        
     }
 
     public bool IsInsideGrid(Vector3 position)
@@ -179,8 +179,8 @@ public class TetrisGrid : MonoBehaviour
     }
     void UpdateUI()
     {
-        rowsClearedText.text = "Cleared: " + rowsCleared;
-        scoreText.text = "Score: " + score;
+        rowsClearedText.text = "" + rowsCleared;
+        scoreText.text = "" + score;
 
         // Check if it's time to increase difficulty
         if (rowsCleared / rowsPerDifficultyIncrease >= currentDifficultyLevel)

@@ -87,10 +87,12 @@ public class TetriminoController : MonoBehaviour
                 if (IsInLeftRegion(mousePosition))
                 {
                     Move(Vector3.left);
+                    SoundManager.Instance.PlaySound(SoundManager.Instance.moveSound);
                 }
                 else if (IsInRightRegion(mousePosition))
                 {
                     Move(Vector3.right);
+                    SoundManager.Instance.PlaySound(SoundManager.Instance.moveSound);
                 }
                 else if (IsInMiddleRegion(mousePosition))
                 {

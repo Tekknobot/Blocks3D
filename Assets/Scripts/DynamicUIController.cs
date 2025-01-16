@@ -21,6 +21,8 @@ public class DynamicUIController : MonoBehaviour
     public float actionButtonSpacing = 20f;
     public Color actionButtonColor = Color.blue;
     public string[] actionButtonTexts = { "Rotate Left", "Rotate Right" };
+    public float actionButtonScaleFactor = 1.0f; // Scale factor to adjust overall size
+
 
     [Header("Button Text Settings")]
     public Font buttonFont;
@@ -35,6 +37,7 @@ public class DynamicUIController : MonoBehaviour
     private Coroutine holdCoroutine;
     [Header("Continuous Move Settings")]
     public float continuousMoveDelay = 0.1f; // Delay between continuous moves, adjustable in the Inspector
+    public float dPadButtonSizeRatio = 0.1f; // Ratio relative to screen height
 
     void Start()
     {
@@ -48,19 +51,39 @@ public class DynamicUIController : MonoBehaviour
         GameObject canvasGO = new GameObject("GameCanvas");
         Canvas canvas = canvasGO.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+
         CanvasScaler scaler = canvasGO.AddComponent<CanvasScaler>();
         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1080, 1920);
+
+        // Use a balanced reference resolution
+        scaler.referenceResolution = new Vector2(1080, 1920); // Common for mobile devices
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+
+        // Match width or height based on the aspect ratio
+        scaler.matchWidthOrHeight = Screen.width > Screen.height ? 0 : 1;
+
         canvasGO.AddComponent<GraphicRaycaster>();
 
+        // Always create the D-Pad group
         CreateDPadGroup(canvasGO);
-        CreateActionButtonsGroup(canvasGO);
+
+        // Check for mobile browsers based on aspect ratio or screen size
+        bool isMobileBrowser = (Screen.height > Screen.width && Screen.height < 3000); // Adjust as needed
+        if (isMobileBrowser)
+        {
+            CreateActionButtonsGroup(canvasGO);
+        }
+        else
+        {
+            Debug.Log("Action buttons are not displayed on non-mobile browsers.");
+        }
 
         foreach (var button in buttons)
         {
             button.interactable = false;
         }
     }
+
 
     void Update()
     {
@@ -95,12 +118,17 @@ public class DynamicUIController : MonoBehaviour
         dPadGroupRect.anchoredPosition = dPadGroupPosition;
         dPadGroupRect.sizeDelta = new Vector2(300f, 300f);
 
-        float buttonOffset = 100;
+        // Scale button size dynamically based on screen height
+        float dynamicDPadButtonSize = Screen.height * dPadButtonSizeRatio;
 
-        CreateButton(dPadGroup, dPadButtonTexts[0], new Vector2(-buttonOffset, 0), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.left));
-        CreateButton(dPadGroup, dPadButtonTexts[1], new Vector2(buttonOffset, 0), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.right));
-        CreateButton(dPadGroup, dPadButtonTexts[2], new Vector2(0, -buttonOffset), dPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.down), () => MoveDownContinuously());
-        CreateButton(dPadGroup, dPadButtonTexts[3], new Vector2(0, buttonOffset), dPadButtonSize, dPadButtonColor, () => HardDropAction());
+        // Adjust button offset based on dynamic size
+        float buttonOffset = dynamicDPadButtonSize;
+
+        // Create DPad buttons
+        CreateButton(dPadGroup, dPadButtonTexts[0], new Vector2(-buttonOffset, 0), dynamicDPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.left));
+        CreateButton(dPadGroup, dPadButtonTexts[1], new Vector2(buttonOffset, 0), dynamicDPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.right));
+        CreateButton(dPadGroup, dPadButtonTexts[2], new Vector2(0, -buttonOffset), dynamicDPadButtonSize, dPadButtonColor, () => MoveAction(Vector3.down), () => MoveDownContinuously());
+        CreateButton(dPadGroup, dPadButtonTexts[3], new Vector2(0, buttonOffset), dynamicDPadButtonSize, dPadButtonColor, () => HardDropAction());
     }
 
     void CreateActionButtonsGroup(GameObject canvasGO)
@@ -109,17 +137,28 @@ public class DynamicUIController : MonoBehaviour
         actionButtonsGroup.transform.SetParent(canvasGO.transform);
 
         RectTransform actionGroupRect = actionButtonsGroup.AddComponent<RectTransform>();
-        actionGroupRect.anchorMin = new Vector2(1, 0);
-        actionGroupRect.anchorMax = new Vector2(1, 0);
-        actionGroupRect.pivot = new Vector2(1, 0);
-        actionGroupRect.anchoredPosition = actionButtonsGroupPosition;
+        actionGroupRect.anchorMin = new Vector2(0.5f, 0); // Center horizontally
+        actionGroupRect.anchorMax = new Vector2(0.5f, 0);
+        actionGroupRect.pivot = new Vector2(0.5f, 0);
+        actionGroupRect.anchoredPosition = new Vector2(0, actionButtonsGroupPosition.y); // Keep y position consistent
 
-        Vector2 leftButtonPosition = new Vector2(-actionButtonSize.x - actionButtonSpacing, 0);
-        Vector2 rightButtonPosition = new Vector2(0, 0);
+        // Dynamically calculate action button sizes
+        float dynamicButtonWidth = Screen.width * 0.2f * actionButtonScaleFactor;
+        float dynamicButtonHeight = Screen.height * 0.1f * actionButtonScaleFactor;
 
-        CreateButton(actionButtonsGroup, actionButtonTexts[0], leftButtonPosition, actionButtonSize.x, actionButtonColor, () => RotateLeftAction());
-        CreateButton(actionButtonsGroup, actionButtonTexts[1], rightButtonPosition, actionButtonSize.x, actionButtonColor, () => RotateRightAction());
+        // Adjust spacing proportionally
+        float scaledButtonSpacing = actionButtonSpacing * actionButtonScaleFactor;
+
+        // Center the buttons around the spacing
+        float totalWidth = dynamicButtonWidth * 2 + scaledButtonSpacing;
+        float leftButtonX = -totalWidth / 2 + dynamicButtonWidth / 2;
+        float rightButtonX = leftButtonX + dynamicButtonWidth + scaledButtonSpacing;
+
+        // Create action buttons
+        CreateButton(actionButtonsGroup, actionButtonTexts[0], new Vector2(leftButtonX, 0), dynamicButtonWidth, actionButtonColor, () => RotateLeftAction());
+        CreateButton(actionButtonsGroup, actionButtonTexts[1], new Vector2(rightButtonX, 0), dynamicButtonWidth, actionButtonColor, () => RotateRightAction());
     }
+
 
     void CreateButton(GameObject parent, string name, Vector2 position, float buttonSize, Color buttonColor, System.Action onClickAction, System.Action onHoldAction = null)
     {
