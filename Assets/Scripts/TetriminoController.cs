@@ -289,6 +289,4 @@ public class TetriminoController : MonoBehaviour
         // Ensure blocks remain aligned to the grid
         SnapToGrid();
     }
-
-
 }
