@@ -272,9 +272,9 @@ public class TetrisGrid : MonoBehaviour
         CheckAndSaveHighScore();
 
         Vector3 explosionCenter = new Vector3(gridWidth / 2f, gridHeight / 2f, 0f);
-        float explosionForce = 8f; // Adjust the explosion force
-        float explosionRadius = 3f; // Adjust the radius to cover the grid
-        float upwardModifier = 2f; // Optional upward force
+        float explosionForce = 13f; // Adjust the explosion force
+        float explosionRadius = 8f; // Adjust the radius to cover the grid
+        float upwardModifier = 5f; // Optional upward force
 
         // Loop through the entire grid and apply the explosion effect to all blocks
         for (int y = 0; y < gridHeight; y++)
