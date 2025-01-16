@@ -844,6 +844,7 @@ MonoBehaviour:
   buttonFontSize: 20
   buttonTextColor: {r: 1, g: 1, b: 1, a: 0}
   canvasCreationDelay: 0
+  continuousMoveDelay: 0.1
 --- !u!4 &1394859564
 Transform:
   m_ObjectHideFlags: 0
