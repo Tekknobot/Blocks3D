@@ -65,8 +65,15 @@ public class GridVisualizer : MonoBehaviour
 
     public void UpdateMechanicsCellState(int x, int y, bool isActive, Color color = default)
     {
+        // Use Color.clear as the default for inactive cells
+        if (!isActive && color == default)
+        {
+            color = Color.clear; // Or replace with a color representing "empty" (e.g., Color.black)
+        }
+
         UpdateCellState(mechanicsGrid, x, y, isActive, color);
     }
+
 
     public void UpdateDisplayCellState(int x, int y, bool isActive, Color color = default)
     {
@@ -81,12 +88,18 @@ public class GridVisualizer : MonoBehaviour
         if (cell != null)
         {
             cell.SetActive(isActive);
-            if (isActive && color != default)
+
+            Renderer renderer = cell.GetComponent<Renderer>();
+            if (renderer != null && renderer.material.HasProperty("_Color"))
             {
-                Renderer renderer = cell.GetComponent<Renderer>();
-                if (renderer != null && renderer.material.HasProperty("_Color"))
+                // Reset color for inactive cells
+                if (!isActive)
                 {
-                    renderer.material.SetColor("_Color", color);
+                    renderer.material.SetColor("_Color", Color.clear); // Default for empty cells
+                }
+                else
+                {
+                    renderer.material.SetColor("_Color", color != default ? color : Color.white);
                 }
             }
         }

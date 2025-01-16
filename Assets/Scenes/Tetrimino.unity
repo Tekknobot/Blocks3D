@@ -585,7 +585,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
+  m_BackGroundColor: {r: 0.44313726, g: 0.46666667, b: 0.45490196, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -937,7 +937,7 @@ MonoBehaviour:
   score: 0
   rowsClearedText: {fileID: 1724732351}
   scoreText: {fileID: 716106203}
-  baseDropDelay: 0.5
+  baseDropDelay: 1
   dropDelayDecrease: 0.05
   rowsPerDifficultyIncrease: 10
   highScoreText: {fileID: 1502874438}

@@ -133,25 +133,17 @@ public class TetrisGrid : MonoBehaviour
         // Wait for the explosion effect to complete
         yield return new WaitForSeconds(1f);
 
+        // Shift mechanical grid rows down
         for (int y = clearedRow; y < gridHeight - 1; y++)
         {
             for (int x = 0; x < gridWidth; x++)
             {
-                // Shift blocks down
                 grid[x, y] = grid[x, y + 1];
 
                 if (grid[x, y] != null)
                 {
                     grid[x, y].position += Vector3.down;
                 }
-
-                // Update the visual grid
-                visualizer.UpdateMechanicsCellState(
-                    x,
-                    y,
-                    grid[x, y] != null,
-                    grid[x, y]?.GetComponent<Renderer>()?.material.color ?? Color.clear
-                );
             }
         }
 
@@ -159,12 +151,11 @@ public class TetrisGrid : MonoBehaviour
         for (int x = 0; x < gridWidth; x++)
         {
             grid[x, gridHeight - 1] = null;
-            visualizer.UpdateMechanicsCellState(x, gridHeight - 1, false);
         }
 
         // Update game state
         rowsCleared++;
-        int points = (int)(100 * Mathf.Pow(2, rowsCleared - 1)); // Exponential scoring
+        int points = CalculateScore(rowsCleared, currentDifficultyLevel - 1);
         score += points;
 
         UpdateUI();
@@ -179,16 +170,17 @@ public class TetrisGrid : MonoBehaviour
     }
     void UpdateUI()
     {
-        rowsClearedText.text = "" + rowsCleared;
-        scoreText.text = "" + score;
+        rowsClearedText.text = rowsCleared.ToString();
+        scoreText.text = score.ToString();
 
-        // Check if it's time to increase difficulty
+        // Increase difficulty based on total rows cleared
         if (rowsCleared / rowsPerDifficultyIncrease >= currentDifficultyLevel)
         {
             IncreaseDifficulty();
             currentDifficultyLevel++;
         }
     }
+
 
     void IncreaseDifficulty()
     {
@@ -219,6 +211,14 @@ public class TetrisGrid : MonoBehaviour
             }
         }
 
+        // Add score based on rows cleared
+        if (rowsClearedThisCheck > 0)
+        {
+            int points = CalculateScore(rowsClearedThisCheck, currentDifficultyLevel - 1);
+            score += points;
+            UpdateUI();
+        }
+
         // Play sound effects based on rows cleared
         if (rowsClearedThisCheck == 4)
         {
@@ -229,7 +229,6 @@ public class TetrisGrid : MonoBehaviour
             SoundManager.Instance.PlaySound(SoundManager.Instance.rowClearSound);
         }
     }
-
 
 
     public bool IsRowEmpty(int row)
@@ -358,6 +357,23 @@ public class TetrisGrid : MonoBehaviour
     public int LoadHighScore()
     {
         return PlayerPrefs.GetInt("HighScore", 0); // Default to 0 if no high score is saved
+    }
+
+    private int CalculateScore(int rowsCleared, int level)
+    {
+        switch (rowsCleared)
+        {
+            case 1:
+                return 40 * (level + 1);
+            case 2:
+                return 100 * (level + 1);
+            case 3:
+                return 300 * (level + 1);
+            case 4:
+                return 1200 * (level + 1);
+            default:
+                return 0; // No points for clearing 0 rows
+        }
     }
 
 }
