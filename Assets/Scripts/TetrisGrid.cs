@@ -84,9 +84,9 @@ public class TetrisGrid : MonoBehaviour
         Debug.Log($"Clearing row {row}");
 
         Vector3 explosionCenter = new Vector3(gridWidth / 2f, row, 0f);
-        float explosionForce = 8f;
-        float explosionRadius = 3f;
-        float upwardModifier = 2f;
+        float explosionForce = 13f;
+        float explosionRadius = 8f;
+        float upwardModifier = 5f;
 
         for (int x = 0; x < gridWidth; x++)
         {
@@ -268,6 +268,8 @@ public class TetrisGrid : MonoBehaviour
 
     public void GameOver()
     {
+        SoundManager.Instance.PlaySound(SoundManager.Instance.gameOverSound);
+
         Debug.Log("Game Over!");
         CheckAndSaveHighScore();
 
@@ -316,7 +318,7 @@ public class TetrisGrid : MonoBehaviour
         DisableGameControls();
 
         // Restart the game after a delay
-            Invoke(nameof(RestartGame), 3f); // Adjust delay to match the explosion duration
+        Invoke(nameof(RestartGame), 3f); // Adjust delay to match the explosion duration
     }
 
     void DisableGameControls()

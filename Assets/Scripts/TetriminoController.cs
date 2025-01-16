@@ -37,10 +37,12 @@ public class TetriminoController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             Move(Vector3.left);
+            SoundManager.Instance.PlaySound(SoundManager.Instance.moveSound);
         }
         else if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             Move(Vector3.right);
+            SoundManager.Instance.PlaySound(SoundManager.Instance.moveSound);
         }
         else if (Input.GetKeyDown(KeyCode.DownArrow))
         {
@@ -53,7 +55,7 @@ public class TetriminoController : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            //Rotate();
+            Rotate(90);
         }
 
         // Handle mouse input
@@ -249,7 +251,9 @@ public class TetriminoController : MonoBehaviour
         this.enabled = false;
 
         // Spawn a new piece
-        FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();     
+        FindObjectOfType<TetriminoSpawner>().SpawnTetrimino();
+
+        SoundManager.Instance.PlaySound(SoundManager.Instance.dropSound);     
     }
 
 
