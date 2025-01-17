@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Collections;
-using UnityEngine.EventSystems; // Required for Pointer Events
+using UnityEngine.EventSystems; // Required for Pointer Events.
 
 public class DynamicUIController : MonoBehaviour
 {
