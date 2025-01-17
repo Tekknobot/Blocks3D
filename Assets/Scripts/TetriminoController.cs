@@ -76,10 +76,22 @@ public class TetriminoController : MonoBehaviour
             // Get mouse position in screen space
             Vector3 mousePosition = Input.mousePosition;
 
-            // Check if the click is in the top half for fast drop
+            // Check if the click is in the top half of the screen
             if (IsInTopHalf(mousePosition))
             {
-                while (Move(Vector3.down)) { } // Fast drop
+                // Perform a raycast to check for CycleButton tag
+                Ray ray = Camera.main.ScreenPointToRay(mousePosition);
+                if (Physics.Raycast(ray, out RaycastHit hit))
+                {
+                    if (hit.collider.CompareTag("CycleButton"))
+                    {
+                        // Do nothing if the click is on a CycleButton
+                        return;
+                    }
+                }
+
+                // Fast drop if not clicking on CycleButton
+                while (Move(Vector3.down)) { } 
             }
             else
             {
