@@ -157,6 +157,10 @@ public class DynamicUIController : MonoBehaviour
         // Create action buttons
         CreateButton(actionButtonsGroup, actionButtonTexts[0], new Vector2(leftButtonX, 0), dynamicButtonWidth, actionButtonColor, () => RotateLeftAction());
         CreateButton(actionButtonsGroup, actionButtonTexts[1], new Vector2(rightButtonX, 0), dynamicButtonWidth, actionButtonColor, () => RotateRightAction());
+
+        // Create an invisible middle button for "Move Down"
+        float middleButtonX = (leftButtonX + rightButtonX) / 2;
+        CreateButton(actionButtonsGroup, "Down", new Vector2(middleButtonX, 0), dynamicButtonWidth / 2, Color.clear, () => MoveDownContinuously(), () => MoveDownContinuously());
     }
 
 
@@ -221,6 +225,7 @@ public class DynamicUIController : MonoBehaviour
             trigger.triggers.Add(pointerUpEntry);
         }
     }
+
 
     void MoveAction(Vector3 direction)
     {
