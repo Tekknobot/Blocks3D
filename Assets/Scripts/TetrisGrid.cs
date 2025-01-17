@@ -29,9 +29,13 @@ public class TetrisGrid : MonoBehaviour
         grid = new Transform[gridWidth, gridHeight];
         visualizer = FindObjectOfType<GridVisualizer>();
 
+        currentDifficultyLevel = 1; // Reset difficulty level
+        TetriminoController.baseDropDelay = baseDropDelay; // Reset drop delay
+
         int highScore = LoadHighScore();
         highScoreText.text = "" + highScore;        
     }
+
 
     public bool IsInsideGrid(Vector3 position)
     {
@@ -344,9 +348,14 @@ public class TetrisGrid : MonoBehaviour
 
     void RestartGame()
     {
+        // Reset difficulty-related variables
+        currentDifficultyLevel = 1;
+        TetriminoController.baseDropDelay = baseDropDelay;
+
         // Reload the current scene to reset the game
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+
 
     public void SaveScore()
     {
