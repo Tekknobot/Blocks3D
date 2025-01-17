@@ -391,7 +391,7 @@ public class TetrisGrid : MonoBehaviour
     private IEnumerator FlashBlocksWhite(List<GameObject> blocks, float duration)
     {
         float elapsedTime = 0f; // Track elapsed time
-        float flashSpeed = 10f;  // Speed of flashing (higher = faster flashing)
+        float flashInterval = 0.1f; // Interval between flashes (adjust for faster/slower flashing)
 
         // Store the original materials of the blocks
         Dictionary<GameObject, Material> originalMaterials = new Dictionary<GameObject, Material>();
@@ -408,10 +408,11 @@ public class TetrisGrid : MonoBehaviour
             }
         }
 
-        // Perform the flashing effect for the duration
+        // Alternate flash state (on/off) for the duration
+        bool flashOn = true; // Start with flash "on"
         while (elapsedTime < duration)
         {
-            float flashAmount = Mathf.PingPong(elapsedTime * flashSpeed, 1.0f); // Oscillate between 0 and 1
+            float flashAmount = flashOn ? 1.0f : 0.0f; // Toggle between 1 and 0
 
             // Update _FlashAmount property on each block's material
             foreach (var pair in originalMaterials)
@@ -422,8 +423,12 @@ public class TetrisGrid : MonoBehaviour
                 }
             }
 
-            elapsedTime += Time.deltaTime; // Increment elapsed time
-            yield return null;
+            // Toggle the flash state
+            flashOn = !flashOn;
+
+            // Wait for the next flash interval
+            elapsedTime += flashInterval;
+            yield return new WaitForSeconds(flashInterval);
         }
 
         // Reset _FlashAmount to 0 at the end for all blocks
@@ -435,5 +440,6 @@ public class TetrisGrid : MonoBehaviour
             }
         }
     }
+
 
 }
