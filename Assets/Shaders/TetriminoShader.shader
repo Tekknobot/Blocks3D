@@ -2,16 +2,14 @@ Shader "Custom/TetriminoShader"
 {
     Properties
     {
-        _Color ("Base Color", Color) = (1, 1, 1, 1) // Add this line if `_Color` is missing
-
         _BaseColor ("Base Color", Color) = (1, 1, 1, 1)
-        _TintXPositive ("X+ Tint", Color) = (0.5, 0.45, 0.45, 1) // 50% darker red tint
-        _TintXNegative ("X- Tint", Color) = (0.45, 0.5, 0.45, 1) // 50% darker green tint
-        _TintYPositive ("Y+ Tint", Color) = (0.45, 0.45, 0.5, 1) // 50% darker blue tint
-        _TintYNegative ("Y- Tint", Color) = (0.5, 0.45, 0.5, 1) // 50% darker magenta tint
-        _TintZPositive ("Z+ Tint", Color) = (0.45, 0.5, 0.5, 1) // 50% darker cyan tint
-        _TintZNegative ("Z- Tint", Color) = (0.5, 0.5, 0.45, 1) // 50% darker yellow tint
-
+        _TintXPositive ("X+ Tint", Color) = (0.5, 0.45, 0.45, 1)
+        _TintXNegative ("X- Tint", Color) = (0.45, 0.5, 0.45, 1)
+        _TintYPositive ("Y+ Tint", Color) = (0.45, 0.45, 0.5, 1)
+        _TintYNegative ("Y- Tint", Color) = (0.5, 0.45, 0.5, 1)
+        _TintZPositive ("Z+ Tint", Color) = (0.45, 0.5, 0.5, 1)
+        _TintZNegative ("Z- Tint", Color) = (0.5, 0.5, 0.45, 1)
+        _FlashAmount ("Flash Amount", Range(0, 1)) = 0 // Add this property
     }
     SubShader
     {
@@ -44,6 +42,7 @@ Shader "Custom/TetriminoShader"
             fixed4 _TintYNegative;
             fixed4 _TintZPositive;
             fixed4 _TintZNegative;
+            float _FlashAmount; // Flash intensity
 
             v2f vert (appdata_t v)
             {
@@ -67,6 +66,9 @@ Shader "Custom/TetriminoShader"
                 else if (i.worldNormal.y < -0.5) tint *= _TintYNegative;
                 else if (i.worldNormal.z > 0.5)  tint *= _TintZPositive;
                 else if (i.worldNormal.z < -0.5) tint *= _TintZNegative;
+
+                // Blend with white based on _FlashAmount
+                tint = lerp(tint, float4(1, 1, 1, 1), _FlashAmount);
 
                 return tint;
             }

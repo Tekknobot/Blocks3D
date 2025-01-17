@@ -942,6 +942,7 @@ MonoBehaviour:
   rowsPerDifficultyIncrease: 10
   highScoreText: {fileID: 1502874438}
   isClearingRows: 0
+  explosionEffectPrefab: {fileID: 4567745000911557774, guid: 5b84c24d4339f49d29591355ccf6495a, type: 3}
 --- !u!4 &1498603917
 Transform:
   m_ObjectHideFlags: 0

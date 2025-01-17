@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -20,6 +21,8 @@ public class TetrisGrid : MonoBehaviour
     private int currentDifficultyLevel = 1;
     public TMP_Text highScoreText;
     public bool isClearingRows = false;
+    public GameObject explosionEffectPrefab; // Drag your particle prefab here in the Inspector
+
 
     void Start()
     {
@@ -83,6 +86,9 @@ public class TetrisGrid : MonoBehaviour
 
         Debug.Log($"Clearing row {row}");
 
+        // Create a list to hold the blocks that will be cleared
+        List<GameObject> blocksToClear = new List<GameObject>();
+
         Vector3 explosionCenter = new Vector3(gridWidth / 2f, row, 0f);
         float explosionForce = 13f;
         float explosionRadius = 8f;
@@ -99,6 +105,9 @@ public class TetrisGrid : MonoBehaviour
                 {
                     continue;
                 }
+
+                // Add the block to the list for flashing
+                blocksToClear.Add(block);
 
                 // Add Rigidbody dynamically if missing
                 Rigidbody blockRigidbody = block.GetComponent<Rigidbody>();
@@ -123,6 +132,9 @@ public class TetrisGrid : MonoBehaviour
                 grid[x, row] = null; // Remove from the logical grid
             }
         }
+
+        // Flash the blocks before explosion effect
+        StartCoroutine(FlashBlocksWhite(blocksToClear, 1f));
 
         // Start coroutine to shift rows down
         StartCoroutine(ShiftRowsDownWithDelay(row, FindObjectsOfType<TetriminoController>()));
@@ -373,6 +385,54 @@ public class TetrisGrid : MonoBehaviour
                 return 1200 * (level + 1);
             default:
                 return 0; // No points for clearing 0 rows
+        }
+    }
+
+    private IEnumerator FlashBlocksWhite(List<GameObject> blocks, float duration)
+    {
+        float elapsedTime = 0f; // Track elapsed time
+        float flashSpeed = 10f;  // Speed of flashing (higher = faster flashing)
+
+        // Store the original materials of the blocks
+        Dictionary<GameObject, Material> originalMaterials = new Dictionary<GameObject, Material>();
+        foreach (GameObject block in blocks)
+        {
+            Renderer renderer = block.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                Material mat = renderer.material;
+                if (mat.HasProperty("_FlashAmount"))
+                {
+                    originalMaterials[block] = mat;
+                }
+            }
+        }
+
+        // Perform the flashing effect for the duration
+        while (elapsedTime < duration)
+        {
+            float flashAmount = Mathf.PingPong(elapsedTime * flashSpeed, 1.0f); // Oscillate between 0 and 1
+
+            // Update _FlashAmount property on each block's material
+            foreach (var pair in originalMaterials)
+            {
+                if (pair.Value.HasProperty("_FlashAmount"))
+                {
+                    pair.Value.SetFloat("_FlashAmount", flashAmount);
+                }
+            }
+
+            elapsedTime += Time.deltaTime; // Increment elapsed time
+            yield return null;
+        }
+
+        // Reset _FlashAmount to 0 at the end for all blocks
+        foreach (var pair in originalMaterials)
+        {
+            if (pair.Value.HasProperty("_FlashAmount"))
+            {
+                pair.Value.SetFloat("_FlashAmount", 0f);
+            }
         }
     }
 
