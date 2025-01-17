@@ -134,7 +134,7 @@ public class TetrisGrid : MonoBehaviour
         }
 
         // Flash the blocks before explosion effect
-        StartCoroutine(FlashBlocksWhite(blocksToClear, 1f));
+        //StartCoroutine(FlashBlocksWhite(blocksToClear, 1f));
 
         // Start coroutine to shift rows down
         StartCoroutine(ShiftRowsDownWithDelay(row, FindObjectsOfType<TetriminoController>()));
