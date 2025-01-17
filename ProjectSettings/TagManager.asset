@@ -6,6 +6,7 @@ TagManager:
   tags:
   - GridCell
   - Tetrimino
+  - CycleButton
   layers:
   - Default
   - TransparentFX
