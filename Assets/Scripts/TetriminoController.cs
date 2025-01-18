@@ -70,32 +70,34 @@ public class TetriminoController : MonoBehaviour
             // Do nothing if the click is over a UI element
             return;
         }
-                
+
         if (Input.GetMouseButtonDown(0)) // Left mouse click
         {
             // Get mouse position in screen space
             Vector3 mousePosition = Input.mousePosition;
 
-            // Check if the click is in the top half of the screen
-            if (IsInTopHalf(mousePosition))
+            // Perform a raycast to check for rotational spheres or other UI elements
+            Ray ray = Camera.main.ScreenPointToRay(mousePosition);
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
-                // Perform a raycast to check for CycleButton tag
-                Ray ray = Camera.main.ScreenPointToRay(mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit))
+                if (hit.collider != null)
                 {
-                    if (hit.collider.CompareTag("CycleButton"))
+                    if (hit.collider.CompareTag("RotationSphere")) // Prevent actions if clicking on a rotational sphere
                     {
-                        // Do nothing if the click is on a CycleButton
+                        Debug.Log("Clicked on a rotational sphere, ignoring movement.");
                         return;
                     }
                 }
+            }
 
-                // Fast drop if not clicking on CycleButton
-                while (Move(Vector3.down)) { } 
+            // If not clicking on a rotation sphere, determine which region of the screen was clicked
+            if (IsInTopHalf(mousePosition))
+            {
+                // Fast drop
+                while (Move(Vector3.down)) { }
             }
             else
             {
-                // Determine which screen region was clicked
                 if (IsInLeftRegion(mousePosition))
                 {
                     Move(Vector3.left);
@@ -108,11 +110,12 @@ public class TetriminoController : MonoBehaviour
                 }
                 else if (IsInMiddleRegion(mousePosition))
                 {
-                    //Rotate();
+                    // Potential future logic for middle region
                 }
             }
         }
     }
+
 
     bool IsInLeftRegion(Vector3 mousePosition)
     {

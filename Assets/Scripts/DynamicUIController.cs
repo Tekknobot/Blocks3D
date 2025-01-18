@@ -142,25 +142,17 @@ public class DynamicUIController : MonoBehaviour
         actionGroupRect.pivot = new Vector2(0.5f, 0);
         actionGroupRect.anchoredPosition = new Vector2(0, actionButtonsGroupPosition.y); // Keep y position consistent
 
-        // Dynamically calculate action button sizes
+        // Dynamically calculate button sizes
         float dynamicButtonWidth = Screen.width * 0.2f * actionButtonScaleFactor;
         float dynamicButtonHeight = Screen.height * 0.1f * actionButtonScaleFactor;
 
-        // Adjust spacing proportionally
-        float scaledButtonSpacing = actionButtonSpacing * actionButtonScaleFactor;
+        // Position for the center button
+        Vector2 centerButtonPosition = Vector2.zero;
 
-        // Center the buttons around the spacing
-        float totalWidth = dynamicButtonWidth * 2 + scaledButtonSpacing;
-        float leftButtonX = -totalWidth / 2 + dynamicButtonWidth / 2;
-        float rightButtonX = leftButtonX + dynamicButtonWidth + scaledButtonSpacing;
-
-        // Create action buttons
-        CreateButton(actionButtonsGroup, actionButtonTexts[0], new Vector2(leftButtonX, 0), dynamicButtonWidth, actionButtonColor, () => RotateLeftAction());
-        CreateButton(actionButtonsGroup, actionButtonTexts[1], new Vector2(rightButtonX, 0), dynamicButtonWidth, actionButtonColor, () => RotateRightAction());
-
-        // Create an invisible middle button for "Move Down"
-        float middleButtonX = (leftButtonX + rightButtonX) / 2;
-        CreateButton(actionButtonsGroup, "Down", new Vector2(middleButtonX, 0), dynamicButtonWidth / 2, Color.clear, () => MoveDownContinuously(), () => MoveDownContinuously());
+        // Create the center button for "Move Down"
+        CreateButton(actionButtonsGroup, "Down", centerButtonPosition, dynamicButtonWidth, actionButtonColor, 
+                    () => MoveDownContinuously(), 
+                    () => MoveDownContinuously());
     }
 
 
@@ -232,12 +224,12 @@ public class DynamicUIController : MonoBehaviour
         tetriminoController?.Move(direction);
     }
 
-    void RotateLeftAction()
+    public void RotateLeftAction()
     {
         tetriminoController?.RotateLeft();
     }
 
-    void RotateRightAction()
+    public void RotateRightAction()
     {
         tetriminoController?.RotateRight();
     }
