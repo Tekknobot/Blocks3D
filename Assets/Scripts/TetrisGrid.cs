@@ -21,8 +21,6 @@ public class TetrisGrid : MonoBehaviour
     private int currentDifficultyLevel = 1;
     public TMP_Text highScoreText;
     public bool isClearingRows = false;
-    public GameObject explosionEffectPrefab; // Drag your particle prefab here in the Inspector
-
 
     void Start()
     {
@@ -34,6 +32,14 @@ public class TetrisGrid : MonoBehaviour
 
         int highScore = LoadHighScore();
         highScoreText.text = "" + highScore;        
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Q)) // Press Space to rotate
+        {
+            StartCoroutine(RotateGridQuads()); // Rotate with a 3D twist over 1 second
+        }
     }
 
 
@@ -197,10 +203,8 @@ public class TetrisGrid : MonoBehaviour
         }
     }
 
-
     void IncreaseDifficulty()
     {
-        // Notify the player (optional)
         Debug.Log("Difficulty increased!");
 
         // Reduce the base drop delay in TetriminoController
@@ -208,7 +212,61 @@ public class TetrisGrid : MonoBehaviour
             TetriminoController.baseDropDelay - dropDelayDecrease,
             0.1f // Minimum delay
         );
-    }    
+
+        // Rotate individual quads in the visual grid
+        StartCoroutine(RotateGridQuads());
+    }
+
+    private IEnumerator RotateGridQuads()
+    {
+        float rotationDuration = 0.5f; // Duration of each rotation animation
+        GameObject[,] displayGrid = visualizer.GetDisplayGrid(); // Get the display grid from GridVisualizer
+
+        // Calculate the maximum diagonal index
+        int maxDiagonalIndex = gridWidth + gridHeight - 2;
+
+        for (int diagonalIndex = 0; diagonalIndex <= maxDiagonalIndex; diagonalIndex++)
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                int y = diagonalIndex - x; // Calculate y based on diagonal index
+
+                // Ensure the calculated (x, y) is within bounds
+                if (y >= 0 && y < gridHeight)
+                {
+                    GameObject quad = displayGrid[x, y];
+                    if (quad != null)
+                    {
+                        StartCoroutine(RotateQuad(quad.transform, rotationDuration));
+                    }
+                }
+            }
+
+            // Add a delay between each diagonal wave
+            yield return new WaitForSeconds(0.1f);
+        }
+    }
+
+    private IEnumerator RotateQuad(Transform quad, float duration)
+    {
+        Quaternion initialRotation = quad.rotation;
+
+        // Target rotation: Flip to the opposite side with a 3D twist
+        Quaternion targetRotation = initialRotation * Quaternion.Euler(0, 0, 180);
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            // Smoothly interpolate between the initial and target rotations
+            quad.rotation = Quaternion.Lerp(initialRotation, targetRotation, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Ensure the final rotation is exact
+        quad.rotation = targetRotation;
+    }
+
 
     public void CheckForCompleteRows()
     {
@@ -245,7 +303,6 @@ public class TetrisGrid : MonoBehaviour
             SoundManager.Instance.PlaySound(SoundManager.Instance.rowClearSound);
         }
     }
-
 
     public bool IsRowEmpty(int row)
     {

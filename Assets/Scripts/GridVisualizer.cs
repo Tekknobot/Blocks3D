@@ -14,7 +14,11 @@ public class GridVisualizer : MonoBehaviour
 
     private GameObject[,] mechanicsGrid; // Visual grid for mechanics (hidden)
     private GameObject[,] displayGrid;   // Visual-only grid (displayed)
-
+    public GameObject[,] GetDisplayGrid()
+    {
+        return displayGrid;
+    }
+    
     void Start()
     {
         InitializeGrids();
