@@ -150,9 +150,9 @@ public class DynamicUIController : MonoBehaviour
         Vector2 centerButtonPosition = Vector2.zero;
 
         // Create the center button for "Move Down"
-        CreateButton(actionButtonsGroup, "Down", centerButtonPosition, dynamicButtonWidth, actionButtonColor, 
-                    () => MoveDownContinuously(), 
-                    () => MoveDownContinuously());
+        // CreateButton(actionButtonsGroup, "Down", centerButtonPosition, dynamicButtonWidth, actionButtonColor, 
+        //             () => MoveDownContinuously(), 
+        //             () => MoveDownContinuously());
     }
 
 
@@ -239,7 +239,7 @@ public class DynamicUIController : MonoBehaviour
         tetriminoController?.HardDrop();
     }
 
-    void MoveDownContinuously()
+    public void MoveDownContinuously()
     {
         tetriminoController?.Move(Vector3.down);
     }

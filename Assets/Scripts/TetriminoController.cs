@@ -93,6 +93,16 @@ public class TetriminoController : MonoBehaviour
             // If not clicking on a rotation sphere, determine which region of the screen was clicked
             if (IsInTopHalf(mousePosition))
             {
+                // Perform a raycast to check for CycleButton tag
+                Ray ray2 = Camera.main.ScreenPointToRay(mousePosition);
+                if (Physics.Raycast(ray, out RaycastHit hit2))
+                {
+                    if (hit.collider.CompareTag("CycleButton"))
+                    {
+                        // Do nothing if the click is on a CycleButton
+                        return;
+                    }
+                }                
                 // Fast drop
                 while (Move(Vector3.down)) { }
             }
