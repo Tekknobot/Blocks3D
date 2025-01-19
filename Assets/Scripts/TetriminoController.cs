@@ -14,6 +14,8 @@ public class TetriminoController : MonoBehaviour
     private Vector3 previousMousePosition;
     public static float baseDropDelay = 0.5f; // Default drop delay
     public bool isClearingRows = false;
+    private float softDropInterval = 0.1f; // Time between soft drops
+    private float softDropTimer = 0f;
 
     void Start()
     {
@@ -44,11 +46,23 @@ public class TetriminoController : MonoBehaviour
             Move(Vector3.right);
             SoundManager.Instance.PlaySound(SoundManager.Instance.moveSound);
         }
-        else if (Input.GetKeyDown(KeyCode.DownArrow))
+
+        // Handle continuous soft drop
+        if (Input.GetKey(KeyCode.DownArrow))
         {
-            Move(Vector3.down);
+            softDropTimer += Time.deltaTime;
+            if (softDropTimer >= softDropInterval)
+            {
+                Move(Vector3.down);
+                softDropTimer = 0f; // Reset the timer
+            }
         }
-        else if (Input.GetKeyDown(KeyCode.Space))
+        else
+        {
+            softDropTimer = 0f; // Reset timer if Down Arrow is not held
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
         {
             // Hard drop
             while (Move(Vector3.down)) { }
@@ -67,6 +81,7 @@ public class TetriminoController : MonoBehaviour
         // Handle mouse input
         HandleMouseInput();
     }
+
 
 
     void HandleMouseInput()
