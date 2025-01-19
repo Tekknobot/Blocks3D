@@ -53,14 +53,21 @@ public class TetriminoController : MonoBehaviour
             // Hard drop
             while (Move(Vector3.down)) { }
         }
+        else if (Input.GetKeyDown(KeyCode.Z))
+        {
+            // Rotate left (counterclockwise)
+            Rotate(-90);
+        }
         else if (Input.GetKeyDown(KeyCode.UpArrow))
         {
+            // Rotate right (clockwise)
             Rotate(90);
         }
 
         // Handle mouse input
         HandleMouseInput();
     }
+
 
     void HandleMouseInput()
     {
